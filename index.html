@@ -1,0 +1,883 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BEYOND — Into the Unknown</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+
+  <!-- Three.js global build + addons (no modules/importmaps needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+  <section id="hero">
+
+    <!-- Layer 1 — sky background -->
+    <div class="lw" id="bgWrap">
+      <img class="layer-bg" src="background.png" alt="">
+    </div>
+
+    <!-- Layer 2 — BEYOND title (behind planet) -->
+    <div class="hero-title-wrap">
+      <h1 class="hero-title">BEYOND</h1>
+    </div>
+
+    <!-- Layer 3 — planet -->
+    <div class="lw" id="planetWrap">
+      <img class="layer-planet" src="planet.png" alt="">
+    </div>
+
+    <!-- Layer 3 — atmospheric haze -->
+    <div class="lw" id="hazeWrap">
+      <div class="layer-haze"></div>
+    </div>
+
+    <!-- Hero copy — subtitle only, z-index 6 -->
+    <div class="hero-content">
+      <p class="hero-sub">THE FINAL FRONTIER AWAITS</p>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-cue">
+      <span>SCROLL TO EXPLORE</span>
+      <div class="scroll-line"></div>
+    </div>
+
+    <!-- Scrim: darkens hero as mission card rises over it -->
+    <div id="heroScrim"></div>
+
+  </section>
+
+  <!-- ═══════════════════════════ MISSION / SUIT VIEWER ═══════════════════════════ -->
+  <div id="missionPin">
+  <section id="mission">
+    <canvas id="starsCanvas"></canvas>
+
+    <!-- Section header -->
+    <header class="suit-hdr">
+      <p class="suit-hdr-tag">MISSION EQUIPMENT</p>
+      <h2 class="suit-hdr-name">WHITE SENTINEL</h2>
+      <p class="suit-hdr-sub">SELECT A COMPONENT TO VIEW SYSTEMS DATA</p>
+    </header>
+
+    <!-- Full-section 3D viewer -->
+    <div class="suit-viewer" id="suitViewer">
+      <canvas id="suitCanvas"></canvas>
+
+      <div class="suit-loading" id="suitLoading">
+        <div class="suit-spinner"></div>
+        <span class="suit-loading-label">INITIALISING MODEL</span>
+      </div>
+
+      <div class="hs-overlay" id="hsOverlay">
+        <svg class="hs-svg" id="hsSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;">
+          <path class="hs-connector" id="hsConnector" d=""/>
+        </svg>
+      </div>
+
+      <div class="suit-hint" id="suitHint">DRAG TO ROTATE</div>
+
+      <!-- ── JARVIS HUD ── -->
+      <div class="hud" id="hud">
+
+        <!-- Rotating rings -->
+        <svg class="hud-rings" viewBox="-300 -300 600 600" xmlns="http://www.w3.org/2000/svg">
+          <g class="hud-g hud-g--cw-a">
+            <circle r="280" fill="none" stroke="rgba(231,76,60,0.14)" stroke-width="1" stroke-dasharray="3 22"/>
+          </g>
+          <g class="hud-g hud-g--ccw-b">
+            <circle r="244" fill="none" stroke="rgba(231,76,60,0.38)" stroke-width="1.5" stroke-dasharray="18 9"/>
+            <line x1="0" y1="-252" x2="0" y2="-236" stroke="rgba(231,76,60,0.7)" stroke-width="2"/>
+            <line x1="252" y1="0" x2="236" y2="0" stroke="rgba(231,76,60,0.7)" stroke-width="2"/>
+            <line x1="0" y1="252" x2="0" y2="236" stroke="rgba(231,76,60,0.7)" stroke-width="2"/>
+            <line x1="-252" y1="0" x2="-236" y2="0" stroke="rgba(231,76,60,0.7)" stroke-width="2"/>
+          </g>
+          <g class="hud-g hud-g--cw-c">
+            <circle r="206" fill="none" stroke="rgba(231,76,60,0.55)" stroke-width="1.5" stroke-dasharray="78 24"/>
+          </g>
+          <g class="hud-g hud-g--ccw-d">
+            <circle r="166" fill="none" stroke="rgba(231,76,60,0.2)" stroke-width="1" stroke-dasharray="6 4"/>
+          </g>
+          <!-- Axis hairlines -->
+          <line x1="-300" y1="0" x2="300" y2="0" stroke="rgba(231,76,60,0.05)" stroke-width="1"/>
+          <line x1="0" y1="-300" x2="0" y2="300" stroke="rgba(231,76,60,0.05)" stroke-width="1"/>
+          <!-- Cardinal ticks on outer ring -->
+          <line x1="-9" y1="-280" x2="9" y2="-280" stroke="rgba(231,76,60,0.6)" stroke-width="2"/>
+          <line x1="280" y1="-9" x2="280" y2="9" stroke="rgba(231,76,60,0.6)" stroke-width="2"/>
+          <line x1="-9" y1="280" x2="9" y2="280" stroke="rgba(231,76,60,0.6)" stroke-width="2"/>
+          <line x1="-280" y1="-9" x2="-280" y2="9" stroke="rgba(231,76,60,0.6)" stroke-width="2"/>
+        </svg>
+
+        <!-- Horizontal scan sweep -->
+        <div class="hud-scan"></div>
+
+        <!-- Corner targeting brackets -->
+        <div class="hud-br hud-br--tl"></div>
+        <div class="hud-br hud-br--tr"></div>
+        <div class="hud-br hud-br--bl"></div>
+        <div class="hud-br hud-br--br"></div>
+
+        <!-- TL — Unit / Integrity -->
+        <div class="hud-data hud-data--tl">
+          <div class="hud-lbl">UNIT DESIGNATION</div>
+          <div class="hud-val">WHITE SENTINEL</div>
+          <div class="hud-sub">MK.VII &nbsp;·&nbsp; #WS-0047-α</div>
+          <div class="hud-sep"></div>
+          <div class="hud-bar-row">
+            <span class="hud-lbl">HULL INTEGRITY</span>
+            <span class="hud-acc">94%</span>
+          </div>
+          <div class="hud-bar"><div class="hud-bar-fill" style="width:94%"></div></div>
+          <div class="hud-lbl mt">MISSION UPTIME</div>
+          <div class="hud-val hud-mono" id="hudTimer">00:00:00</div>
+        </div>
+
+        <!-- TR — Power -->
+        <div class="hud-data hud-data--tr">
+          <div class="hud-lbl">POWER SYSTEMS</div>
+          <div class="hud-val" id="hudPower">87.4%</div>
+          <div class="hud-bar-row">
+            <span class="hud-lbl">OUTPUT</span>
+            <span class="hud-acc" id="hudOutput">23.1 kW</span>
+          </div>
+          <div class="hud-bar"><div class="hud-bar-fill" id="hudPowerBar" style="width:87%"></div></div>
+          <div class="hud-sep"></div>
+          <div class="hud-lbl">REACTOR TEMP</div>
+          <div class="hud-val" id="hudTemp">312 K</div>
+        </div>
+
+        <!-- BL — Life support -->
+        <div class="hud-data hud-data--bl">
+          <div class="hud-lbl">LIFE SUPPORT</div>
+          <div class="hud-sep"></div>
+          <div class="hud-row"><span class="hud-lbl">O₂ SUPPLY</span><span class="hud-acc" id="hudO2">99.1%</span></div>
+          <div class="hud-row"><span class="hud-lbl">CO₂ SCRUB</span><span class="hud-green">NOMINAL</span></div>
+          <div class="hud-row"><span class="hud-lbl">PRESSURE</span><span class="hud-acc" id="hudPsi">14.7 PSI</span></div>
+          <div class="hud-row"><span class="hud-lbl">CORE TEMP</span><span class="hud-acc">36.8 °C</span></div>
+        </div>
+
+        <!-- BR — Navigation -->
+        <div class="hud-data hud-data--br">
+          <div class="hud-lbl">NAVIGATION</div>
+          <div class="hud-sep"></div>
+          <div class="hud-row"><span class="hud-lbl">SIGNAL</span><span class="hud-acc" id="hudSignal">98.2%</span></div>
+          <div class="hud-row"><span class="hud-lbl">ALTITUDE</span><span class="hud-acc">408 km</span></div>
+          <div class="hud-row"><span class="hud-lbl">VELOCITY</span><span class="hud-acc" id="hudVel">7.66 km/s</span></div>
+          <div class="hud-row"><span class="hud-lbl">ORBIT NO.</span><span class="hud-acc">#423</span></div>
+        </div>
+
+        <!-- Bottom-centre status -->
+        <div class="hud-status">
+          <span class="hud-status-dot"></span>
+          <span class="hud-status-txt">ALL SYSTEMS OPERATIONAL</span>
+          <span class="hud-status-dot"></span>
+        </div>
+
+      </div><!-- /.hud -->
+    </div>
+
+  </section>
+  </div><!-- /#missionPin -->
+
+  <!-- ═══════════════════════════ DISCOVERIES ═══════════════════════════ -->
+  <section id="discoveries">
+
+    <div class="journal-hdr">
+      <h2 class="sec-title ain">NOTABLE DISCOVERIES</h2>
+      <div class="sec-rule"></div>
+      <p class="journal-sub ain">Field notes from the edge of known space</p>
+    </div>
+
+    <div class="journal">
+
+      <!-- ── 01 · Azura-7b (image left · text right) ── -->
+      <article class="j-entry ain">
+        <div class="j-img">
+          <img src="planet1.png" alt="Azura-7b, an ocean world wrapped in violet cloud bands" loading="lazy">
+          <span class="j-img-cap">SYNTHETIC RENDER — NEXUS SURVEY INITIATIVE · CYCLE 4</span>
+        </div>
+        <div class="j-text">
+          <div class="j-num">01</div>
+          <div class="j-tag">EXOPLANET · VELORIS SYSTEM</div>
+          <h3 class="j-title">Azura-7b</h3>
+          <p class="j-lede">A vast ocean world cloaked in violet cloud bands, tracing a figure-eight orbit around twin suns at the edge of the Veloris drift.</p>
+          <p class="j-body">Discovered during the second sweep of the Nexus Deep Field Survey, Azura-7b defies every conventional planetary model. Its upper atmosphere — saturated with ammonia halos and crystalline water vapour lattices — scatters incoming stellar radiation into the distinctive violet shimmer observable even at interstellar range. Most extraordinary is its trajectory: the planet orbits both stars of the Veloris binary system in a stable figure-eight resonance, completing one dual-star cycle every 847 standard days without orbital decay.</p>
+          <div class="j-meta">
+            <div class="j-meta-item">
+              <span class="j-meta-lbl">CONFIRMED</span>
+              <span class="j-meta-val">March 3, 2031</span>
+            </div>
+            <div class="j-meta-item">
+              <span class="j-meta-lbl">INSTRUMENT</span>
+              <span class="j-meta-val">Nexus Deep Field Array — Unit 4</span>
+            </div>
+          </div>
+          <div class="j-data">
+            <div class="j-datum">
+              <span class="j-datum-val">2,340</span>
+              <span class="j-datum-lbl">LIGHT-YEARS</span>
+            </div>
+            <div class="j-datum">
+              <span class="j-datum-val">4.2×</span>
+              <span class="j-datum-lbl">EARTH MASS</span>
+            </div>
+            <div class="j-datum">
+              <span class="j-datum-val">847d</span>
+              <span class="j-datum-lbl">DUAL-ORBIT CYCLE</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ── 02 · Korreth Expanse (text left · image right) ── -->
+      <article class="j-entry ain">
+        <div class="j-img">
+          <img src="planet2.png" alt="The eleven rogue bodies of the Korreth Expanse drifting through the void" loading="lazy">
+          <span class="j-img-cap">COMPOSITE SCAN — SOLARIS INTERFEROMETRY STATION · RING-7</span>
+        </div>
+        <div class="j-text">
+          <div class="j-num">02</div>
+          <div class="j-tag">ROGUE CLUSTER · DRACO-MINOR VOID</div>
+          <h3 class="j-title">Korreth Expanse</h3>
+          <p class="j-lede">Eleven planetary bodies drifting in loose formation through the void — no star, no orbit, no anchor.</p>
+          <p class="j-body">The Korreth Expanse is the largest known cluster of rogue planetary-mass objects ever catalogued. Eleven bodies ranging from sub-Neptune to near-Jovian in scale travel together through interstellar space, collectively generating enough residual tidal heat within their larger members to sustain liquid water reservoirs deep beneath their frozen crusts. What force originally ejected them — and why they remain in such precise gravitational formation — has no accepted explanation in current theory.</p>
+          <div class="j-meta">
+            <div class="j-meta-item">
+              <span class="j-meta-lbl">CATALOGUED</span>
+              <span class="j-meta-val">November 18, 2028</span>
+            </div>
+            <div class="j-meta-item">
+              <span class="j-meta-lbl">INSTRUMENT</span>
+              <span class="j-meta-val">Solaris Interferometry Station · Ring-7</span>
+            </div>
+          </div>
+          <div class="j-data">
+            <div class="j-datum">
+              <span class="j-datum-val">890</span>
+              <span class="j-datum-lbl">LIGHT-YEARS</span>
+            </div>
+            <div class="j-datum">
+              <span class="j-datum-val">11</span>
+              <span class="j-datum-lbl">ROGUE BODIES</span>
+            </div>
+            <div class="j-datum">
+              <span class="j-datum-val">3.8×</span>
+              <span class="j-datum-lbl">LARGEST · JUPITER MASS</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ── 03 · Sorel Prime (image left · text right) ── -->
+      <article class="j-entry ain">
+        <div class="j-img">
+          <img src="planet3.png" alt="The crystalline spire fields of Sorel Prime bathed in trinary starlight" loading="lazy">
+          <span class="j-img-cap">SPECTRAL COMPOSITE — ARIA OBSERVATORY · DEEP SURVEY MODE</span>
+        </div>
+        <div class="j-text">
+          <div class="j-num">03</div>
+          <div class="j-tag">EXOPLANET · SOREL TRINARY SYSTEM</div>
+          <h3 class="j-title">Sorel Prime</h3>
+          <p class="j-lede">The only known world where silicate pressure events have raised crystalline spires forty kilometres into a sky lit by three suns simultaneously.</p>
+          <p class="j-body">Sorel Prime holds the innermost stable orbit within a trinary stellar arrangement — three stars whose shifting gravitational dance bathes the surface in constantly changing spectral colour throughout its brief 19-day year. What makes it singular is not its orbit but its geology: catastrophic sub-surface pressure events have produced continent-spanning fields of crystalline silicate formations, the tallest measured at 43.7 kilometres. Whether these spires are geologically inert or part of an active mineral respiration cycle remains the defining question of the Sorel mission.</p>
+          <div class="j-meta">
+            <div class="j-meta-item">
+              <span class="j-meta-lbl">CONFIRMED</span>
+              <span class="j-meta-val">August 7, 2033</span>
+            </div>
+            <div class="j-meta-item">
+              <span class="j-meta-lbl">INSTRUMENT</span>
+              <span class="j-meta-val">ARIA Observatory — Deep Survey</span>
+            </div>
+          </div>
+          <div class="j-data">
+            <div class="j-datum">
+              <span class="j-datum-val">3,710</span>
+              <span class="j-datum-lbl">LIGHT-YEARS</span>
+            </div>
+            <div class="j-datum">
+              <span class="j-datum-val">0.88×</span>
+              <span class="j-datum-lbl">EARTH RADIUS</span>
+            </div>
+            <div class="j-datum">
+              <span class="j-datum-val">19d</span>
+              <span class="j-datum-lbl">ORBITAL PERIOD</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ── 04 · Nythari Veil (text left · image right) ── -->
+      <article class="j-entry ain">
+        <div class="j-img">
+          <img src="planet4.png" alt="The Nythari Veil nebula, luminous threads of organic-rich gas spanning hundreds of light-years" loading="lazy">
+          <span class="j-img-cap">INFRARED MOSAIC — HELION SPACE TELESCOPE · ARRAY BETA</span>
+        </div>
+        <div class="j-text">
+          <div class="j-num">04</div>
+          <div class="j-tag">NEBULA · SCORPIUS OUTER ARM</div>
+          <h3 class="j-title">Nythari Veil</h3>
+          <p class="j-lede">A gaseous remnant so saturated with pre-biotic compounds that some researchers believe it is actively seeding eleven nearby star systems with life's raw materials.</p>
+          <p class="j-body">Spanning approximately 340 light-years along its longest axis, the Nythari Veil is unlike any diffuse nebula previously charted. Spectroscopic passes by the Helion telescope revealed an extraordinary concentration of complex organics distributed uniformly throughout the cloud — forty-seven distinct pre-biotic compounds including amino acid precursors, nucleobase analogues, and long-chain carbon scaffolds. The hypothesis that the Veil functions as an active dispersal mechanism — a cosmic seed-cloud — for the eleven stellar systems embedded within it remains the most fiercely contested theory in contemporary astrobiology.</p>
+          <div class="j-meta">
+            <div class="j-meta-item">
+              <span class="j-meta-lbl">OBSERVED</span>
+              <span class="j-meta-val">February 2, 2035</span>
+            </div>
+            <div class="j-meta-item">
+              <span class="j-meta-lbl">INSTRUMENT</span>
+              <span class="j-meta-val">Helion Space Telescope — Array Beta</span>
+            </div>
+          </div>
+          <div class="j-data">
+            <div class="j-datum">
+              <span class="j-datum-val">5,200</span>
+              <span class="j-datum-lbl">LIGHT-YEARS</span>
+            </div>
+            <div class="j-datum">
+              <span class="j-datum-val">~340 LY</span>
+              <span class="j-datum-lbl">NEBULA SPAN</span>
+            </div>
+            <div class="j-datum">
+              <span class="j-datum-val">47</span>
+              <span class="j-datum-lbl">ORGANIC COMPOUNDS</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ PARALLAX BREAK ═══════════════════════════ -->
+  <section id="pbreak">
+    <div id="breakBg"></div>
+    <div class="break-overlay"></div>
+    <div id="particles"></div>
+
+    <div class="break-content">
+      <span class="big-stat" id="bigStat">14,000+</span>
+      <span class="stat-sub" id="pbSubLbl">UNCHARTED WORLDS LOGGED AND COUNTING</span>
+      <div class="pb-sep" id="pbSep"></div>
+      <blockquote class="pb-blockquote">
+        <div class="pb-qmark">"</div>
+        <p class="pq-text" id="pqText">Every signal we dismiss as noise may be someone else's language.</p>
+        <footer class="pq-attr" id="pqAttr">— Dr. Yael Correth &nbsp;·&nbsp; ARIA Chief Astronomer &nbsp;·&nbsp; 2031</footer>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ TIMELINE ═══════════════════════════ -->
+  <section id="timeline">
+    <div id="tlPin">
+      <div id="tlSticky">
+        <canvas id="tlCanvas"></canvas>
+        <canvas id="smokeCanvas" class="tl-smoke"></canvas>
+        <div class="tl-scrim"></div>
+
+        <div id="tlHeader">
+          <div class="tl-rule"></div>
+          <h2 class="tl-sec-title">EXPLORATION MILESTONES</h2>
+        </div>
+
+        <div id="tlMsInfo">
+          <div class="tl-ms-num" id="tlMsNum">01</div>
+          <div class="tl-ms-year" id="tlMsYear">1957</div>
+          <h3 class="tl-ms-title" id="tlMsTitle">Sputnik 1</h3>
+          <p class="tl-ms-body" id="tlMsBody">The Soviet Union launches the first artificial satellite, marking the dawn of the space age and humanity's first steps beyond the atmosphere.</p>
+        </div>
+
+        <div id="tlLane">
+          <div id="tlTrack"><div id="tlTrackFill"></div></div>
+          <div id="tlLaneItems">
+            <div class="tl-lane-item active">
+              <div class="tl-lane-dot"></div>
+              <span class="tl-lane-lbl">1957</span>
+            </div>
+            <div class="tl-lane-item">
+              <div class="tl-lane-dot"></div>
+              <span class="tl-lane-lbl">1969</span>
+            </div>
+            <div class="tl-lane-item">
+              <div class="tl-lane-dot"></div>
+              <span class="tl-lane-lbl">1990</span>
+            </div>
+            <div class="tl-lane-item">
+              <div class="tl-lane-dot"></div>
+              <span class="tl-lane-lbl">2004</span>
+            </div>
+            <div class="tl-lane-item">
+              <div class="tl-lane-dot"></div>
+              <span class="tl-lane-lbl">2021</span>
+            </div>
+            <div class="tl-lane-item">
+              <div class="tl-lane-dot"></div>
+              <span class="tl-lane-lbl">2030+</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="tlProgress"><div id="tlProgressFill"></div></div>
+        <div id="tlScrollHint">SCROLL TO EXPLORE</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
+  <footer id="footer">
+    <div class="footer-silhouette"></div>
+    <div class="footer-glow"></div>
+
+    <div class="footer-inner">
+      <div class="f-logo ain">BEYOND</div>
+      <div class="f-tagline ain">A JOURNEY THROUGH THE COSMOS</div>
+      <div class="f-rule"></div>
+      <nav class="f-nav ain">
+        <a href="#">Mission</a>
+        <a href="#">Discoveries</a>
+        <a href="#">Timeline</a>
+        <a href="#">Contact</a>
+      </nav>
+      <p class="f-closing ain">The journey never ends. The stars are waiting.</p>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════ SCRIPTS ═══════════════════════════ -->
+  <script>
+    /* Fit hero height so background image fills full width with zero zoom/crop */
+    (function () {
+      const hero = document.getElementById('hero');
+      const img  = document.querySelector('.layer-bg');
+
+      function fitHero() {
+        if (!img.naturalWidth) return;
+        const naturalH = window.innerWidth * (img.naturalHeight / img.naturalWidth);
+        hero.style.height = Math.max(window.innerHeight, naturalH) + 'px';
+        if (window.ScrollTrigger) ScrollTrigger.refresh();
+      }
+
+      img.complete && img.naturalWidth ? fitHero() : img.addEventListener('load', fitHero);
+      window.addEventListener('resize', fitHero);
+    })();
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ─── Smooth scroll (Lenis + GSAP) ─── */
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(time => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+
+    /* ─── Detect mobile ─── */
+    const isMobile = window.innerWidth < 769;
+
+    /* ═══════════ HERO PARALLAX ═══════════ */
+    if (!isMobile) {
+      const heroST = {
+        trigger: '#hero',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.9
+      };
+
+      /* Background barely moves → feels far away */
+      gsap.to('#bgWrap', {
+        y: '8%',
+        ease: 'none',
+        scrollTrigger: heroST
+      });
+
+      /* Planet drifts up, fades and scales slightly as hero exits */
+      gsap.to('#planetWrap', {
+        y: '14%',
+        opacity: 0.88,
+        scale: 1.04,
+        ease: 'none',
+        scrollTrigger: heroST
+      });
+
+      /* Haze follows background closely */
+      gsap.to('#hazeWrap', {
+        y: '18%',
+        ease: 'none',
+        scrollTrigger: heroST
+      });
+
+
+
+      /* Hero text layers move up slightly (title behind planet drifts with it) */
+      gsap.to('.hero-title-wrap, .hero-content, .scroll-cue', {
+        y: '-6%',
+        ease: 'none',
+        scrollTrigger: heroST
+      });
+
+      /* ── Mission card overlay animations ── */
+
+      /* 1. Hero dims progressively as user scrolls through it
+            (works for any hero height — tied to hero not missionPin) */
+      gsap.to('#heroScrim', {
+        opacity: 0.88,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#hero',
+          start: 'top top',      /* start of scroll                        */
+          end:   'bottom top',   /* hero has exited viewport                */
+          scrub: 0.9
+        }
+      });
+
+      /* 2. Kill the rounded corners once the card pins fullscreen
+            '+=100' = 100 px of scroll after start point                  */
+      gsap.to('#mission', {
+        borderTopLeftRadius: '0px',
+        borderTopRightRadius: '0px',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#missionPin',
+          start: 'top 10%',     /* card 10 % from viewport top             */
+          end:   '+=100',
+          scrub: 0.4
+        }
+      });
+    }
+
+    /* ═══════════ STAR FIELD ═══════════ */
+    (function () {
+      const canvas = document.getElementById('starsCanvas');
+      const ctx    = canvas.getContext('2d');
+
+      function resize() {
+        canvas.width  = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      const STAR_COUNT = 280;
+      const stars = Array.from({ length: STAR_COUNT }, () => ({
+        x:     Math.random() * 100,
+        y:     Math.random() * 100,
+        r:     Math.random() * 1.5 + 0.2,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.6 + 0.2
+      }));
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const t = Date.now() * 0.001;
+        stars.forEach(s => {
+          const a = (Math.sin(t * s.speed + s.phase) + 1) / 2 * 0.72 + 0.08;
+          ctx.beginPath();
+          ctx.arc(s.x / 100 * canvas.width, s.y / 100 * canvas.height, s.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(245,240,232,${a})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* ═══════════ PARTICLES ═══════════ */
+    (function () {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 40; i++) {
+        const el   = document.createElement('div');
+        el.className = 'pt';
+        const size = Math.random() * 2.2 + 0.4;
+        const dur  = Math.random() * 9 + 6;
+        const dx   = ((Math.random() - 0.5) * 90).toFixed(1);
+        el.style.cssText = [
+          `left:${(Math.random() * 100).toFixed(1)}%`,
+          `bottom:${(Math.random() * 50).toFixed(1)}%`,
+          `width:${size.toFixed(1)}px`,
+          `height:${size.toFixed(1)}px`,
+          `--dx:${dx}px`,
+          `animation-duration:${dur.toFixed(1)}s`,
+          `animation-delay:${(-Math.random() * dur).toFixed(1)}s`
+        ].join(';');
+        container.appendChild(el);
+      }
+    })();
+
+    /* ═══════════ PARALLAX BREAK ═══════════ */
+    gsap.to('#breakBg', {
+      y: '22%',
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#pbreak',
+        start: 'top bottom',
+        end:   'bottom top',
+        scrub: true
+      }
+    });
+
+    /* ═══════════ QUOTE SECTION ANIMATIONS ═══════════ */
+    (function () {
+      var statEl  = document.getElementById('bigStat');
+      var subEl   = document.getElementById('pbSubLbl');
+      var sepEl   = document.getElementById('pbSep');
+      var textEl  = document.getElementById('pqText');
+      var attrEl  = document.getElementById('pqAttr');
+      if (!statEl) return;
+
+      var words = textEl.textContent.trim().split(/\s+/);
+      textEl.innerHTML = words.map(function(w){ return '<span class="pq-w">' + w + '</span>'; }).join(' ');
+
+      gsap.set([statEl, subEl], { opacity: 0, y: 22 });
+      gsap.set(sepEl,  { scaleX: 0 });
+      gsap.set('.pq-w', { opacity: 0, y: 15 });
+      gsap.set(attrEl, { opacity: 0, y: 10 });
+
+      ScrollTrigger.create({
+        trigger: '#pbreak',
+        start: 'top 65%',
+        once: true,
+        onEnter: function () {
+          var tl = gsap.timeline();
+
+          tl.to({ v: 0 }, {
+            v: 14000, duration: 2, ease: 'power2.out',
+            onUpdate: function () {
+              statEl.textContent = Math.round(this.targets()[0].v).toLocaleString() + '+';
+            }
+          }, 0);
+          tl.to(statEl, { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, 0);
+          tl.to(subEl,  { opacity: 1, y: 0, duration: 0.5,  ease: 'power2.out' }, 0.3);
+          tl.to(sepEl,  { scaleX: 1,         duration: 0.9,  ease: 'expo.out'   }, 0.75);
+          tl.to('.pq-w', { opacity: 1, y: 0, duration: 0.45, stagger: 0.055, ease: 'power2.out' }, 1.25);
+          tl.to(attrEl, { opacity: 1, y: 0, duration: 0.6,  ease: 'power2.out' },
+                          1.25 + words.length * 0.055 + 0.25);
+        }
+      });
+    })();
+
+    /* ═══════════ VIDEO FRAME SCRUBBER ═══════════ */
+    (function () {
+      var TOTAL_FRAMES = 96;
+      var MILESTONES = [
+        { year: '1957', title: 'Sputnik 1',
+          body: 'The Soviet Union launches the first artificial satellite, marking the dawn of the space age and humanity\'s first steps beyond the atmosphere.' },
+        { year: '1969', title: 'Apollo 11 Moon Landing',
+          body: 'Neil Armstrong and Buzz Aldrin become the first humans to walk on the Moon, fulfilling a decade-long national ambition and redefining what it means to be explorers.' },
+        { year: '1990', title: 'Hubble Space Telescope',
+          body: 'Deployed into low Earth orbit, Hubble becomes humanity\'s eye in the sky — delivering images of deep space that fundamentally transformed our understanding of the cosmos.' },
+        { year: '2004', title: 'Mars Rovers Spirit & Opportunity',
+          body: 'Twin rovers land on Mars and uncover compelling evidence of ancient water activity, reshaping our understanding of the Red Planet\'s wetter, potentially habitable past.' },
+        { year: '2021', title: 'James Webb Space Telescope',
+          body: 'The most powerful space telescope ever built, Webb peers to the universe\'s first light and examines exoplanet atmospheres in unprecedented detail — seeing what no eye has ever seen.' },
+        { year: '2030+', title: 'Crewed Mars Mission',
+          body: 'Humanity\'s next giant leap — a crewed mission to Mars that will make us an interplanetary species. A multi-year journey, a permanent expansion of what we are willing to call home.' }
+      ];
+
+      var canvas   = document.getElementById('tlCanvas');
+      if (!canvas) return;
+      var ctx      = canvas.getContext('2d');
+      var frames   = new Array(TOTAL_FRAMES);
+      var currentMs    = -1;
+      var currentFrame = -1;
+
+      var msNum      = document.getElementById('tlMsNum');
+      var msYear     = document.getElementById('tlMsYear');
+      var msTitle    = document.getElementById('tlMsTitle');
+      var msBody     = document.getElementById('tlMsBody');
+      var laneItems  = document.querySelectorAll('.tl-lane-item');
+      var trackFill  = document.getElementById('tlTrackFill');
+      var progFill   = document.getElementById('tlProgressFill');
+      var hint       = document.getElementById('tlScrollHint');
+
+      function resizeCanvas() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+        if (currentFrame >= 0 && frames[currentFrame] && frames[currentFrame].complete) {
+          ctx.drawImage(frames[currentFrame], 0, 0, canvas.width, canvas.height);
+        }
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      function drawFrame(idx) {
+        var img = frames[idx];
+        if (!img || !img.complete || !img.naturalWidth) return;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        currentFrame = idx;
+      }
+
+      function setMilestone(idx) {
+        if (idx === currentMs) return;
+        currentMs = idx;
+        var ms = MILESTONES[idx];
+        gsap.to('#tlMsInfo', {
+          opacity: 0, y: 12, duration: 0.18,
+          onComplete: function () {
+            msNum.textContent   = ('0' + (idx + 1)).slice(-2);
+            msYear.textContent  = ms.year;
+            msTitle.textContent = ms.title;
+            msBody.textContent  = ms.body;
+            gsap.to('#tlMsInfo', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' });
+          }
+        });
+        laneItems.forEach(function (el, i) { el.classList.toggle('active', i === idx); });
+      }
+
+      /* Preload frames sequentially for fast first paint */
+      (function preload(i) {
+        if (i >= TOTAL_FRAMES) return;
+        var img = new Image();
+        img.onload = function () {
+          if (i === 0) { drawFrame(0); }
+          preload(i + 1);
+        };
+        img.onerror = function () { preload(i + 1); };
+        img.src = 'frames/frame_' + String(i + 1).padStart(4, '0') + '.jpg';
+        frames[i] = img;
+      })(0);
+
+      gsap.set('#tlMsInfo', { opacity: 0, y: 16 });
+
+      ScrollTrigger.create({
+        trigger: '#tlPin',
+        start: 'top top',
+        end:   'bottom bottom',
+        scrub: true,
+        onEnter: function () { setMilestone(0); },
+        onUpdate: function (self) {
+          var p  = self.progress;
+          var fi = Math.min(Math.floor(p * TOTAL_FRAMES), TOTAL_FRAMES - 1);
+          var mi = Math.min(Math.floor(p * 6), 5);
+          drawFrame(fi);
+          setMilestone(mi);
+          trackFill.style.height = (p * 100).toFixed(1) + '%';
+          progFill.style.width  = (p * 100).toFixed(1) + '%';
+          if (hint && p > 0.03) hint.style.opacity = '0';
+        }
+      });
+    })();
+
+    /* ═══════════ INTERSECTION OBSERVER ═══════════ */
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('vis');
+          /* sec-rule needs vis not .ain tracking */
+        }
+      });
+    }, { threshold: 0.14, rootMargin: '0px 0px -40px 0px' });
+
+    /* Observe general animate-in elements */
+    document.querySelectorAll('.ain').forEach((el, i) => {
+      io.observe(el);
+    });
+
+    /* Observe section rules */
+    document.querySelectorAll('.sec-rule, .f-rule').forEach(el => io.observe(el));
+
+    /* ═══════════ SMOKE DIVIDER ═══════════ */
+    (function () {
+      var cv = document.getElementById('smokeCanvas');
+      if (!cv) return;
+      var cx = cv.getContext('2d');
+      var W = 0, H = 0;
+      var PARTS = [];
+      var COUNT = 26;
+
+      function rnd(lo, hi) { return lo + Math.random() * (hi - lo); }
+
+      /* spawn a particle, optionally pre-aged by skipF frames */
+      function spawn(skipF) {
+        skipF = skipF | 0;
+        var vx   = rnd(-0.28, 0.28);
+        var vy   = -rnd(0.45, 0.90);
+        var dr   = rnd(0.18, 0.36);
+        var life = (260 + Math.random() * 180) | 0;
+        var peak = rnd(0.18, 0.35);
+        var maxA = rnd(0.14, 0.26);
+        /* blue-grey to warm-grey tones */
+        var col  = (108 + Math.random() * 58) | 0;
+        var blue = Math.min(col + (Math.random() > 0.5 ? 25 : 5), 218) | 0;
+        return {
+          x: rnd(0.04, 0.96) * W + vx * skipF,
+          y: H + vy * skipF,
+          r: rnd(65, 160) + dr * skipF,
+          vx: vx, vy: vy, dr: dr,
+          age: skipF, life: life,
+          peak: peak, maxA: maxA,
+          col: col, blue: blue
+        };
+      }
+
+      function resize() {
+        W = cv.width  = cv.offsetWidth  || window.innerWidth;
+        H = cv.height = cv.offsetHeight || Math.round(window.innerHeight * 0.55);
+      }
+
+      function tick() {
+        requestAnimationFrame(tick);
+        cx.clearRect(0, 0, W, H);
+
+        for (var i = 0; i < PARTS.length; i++) {
+          var p = PARTS[i];
+
+          /* opacity envelope */
+          var t = p.age / p.life;
+          var e = t < p.peak
+            ? t / p.peak
+            : 1 - (t - p.peak) / (1 - p.peak);
+          var a = Math.max(0, e * p.maxA);
+
+          /* radial gradient puff */
+          if (p.r > 0 && a > 0) {
+            var g = cx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+            g.addColorStop(0,    'rgba(' + p.col + ',' + p.col + ',' + p.blue + ',' + a + ')');
+            g.addColorStop(0.5,  'rgba(' + p.col + ',' + p.col + ',' + p.blue + ',' + (a * 0.42) + ')');
+            g.addColorStop(1,    'rgba(0,0,0,0)');
+            cx.beginPath();
+            cx.arc(p.x, p.y, p.r, 0, 6.2832);
+            cx.fillStyle = g;
+            cx.fill();
+          }
+
+          /* advance */
+          p.x   += p.vx;
+          p.y   += p.vy;
+          p.r   += p.dr;
+          p.age++;
+          if (p.age >= p.life) { PARTS[i] = spawn(0); }
+        }
+      }
+
+      resize();
+      /* seed particles spread across their lifetimes so it's full on load */
+      for (var i = 0; i < COUNT; i++) {
+        PARTS.push(spawn((Math.random() * 320) | 0));
+      }
+      window.addEventListener('resize', resize);
+      tick();
+    })();
+
+    /* Card stagger delays */
+    document.querySelectorAll('.card').forEach((card, i) => {
+      card.style.transitionDelay = `${i * 0.08}s`;
+    });
+  </script>
+
+  <script src="suit.js" defer></script>
+</body>
+</html>
