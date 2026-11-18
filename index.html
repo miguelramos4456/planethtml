@@ -7,13 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-
-  <!-- Three.js global build + addons (no modules/importmaps needed) -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Martian+Mono:wght@300;400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -23,861 +17,548 @@
 </head>
 <body>
 
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- Custom cursor (fine pointers only) -->
+  <div class="cursor" id="cursor" aria-hidden="true">
+    <div class="cursor-ring"><span class="cursor-label" id="cursorLabel"></span></div>
+    <div class="cursor-dot"></div>
+  </div>
+
+  <!-- ═══════════════════════════ NAV (transparent) ═══════════════════════════ -->
+  <header class="nav" id="nav">
+    <a href="#hero" class="nav-brand" aria-label="Beyond — home">BEYOND</a>
+    <nav aria-label="Primary">
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#hero" data-sec="hero" class="active">Origin</a></li>
+        <li><a href="#archive" data-sec="archive">Archive</a></li>
+        <li><a href="#expedition" data-sec="expedition">Expedition</a></li>
+        <li><a href="#worlds" data-sec="worlds">Worlds</a></li>
+        <li><a href="#log" data-sec="log">Log</a></li>
+        <li><a href="#telemetry" data-sec="telemetry">Telemetry</a></li>
+        <li><a href="#footer" data-sec="footer">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="nav-right">
+      <span class="nav-clock"><span class="live-dot" aria-hidden="true"></span><span id="navClock">00:00:00</span> UTC</span>
+      <a href="#footer" class="nav-cta" data-magnetic>Join the mission <span aria-hidden="true">↗</span></a>
+      <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="navSheet">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="nav-sheet" id="navSheet" hidden>
+    <a href="#hero">Origin</a>
+    <a href="#archive">Archive</a>
+    <a href="#expedition">Expedition</a>
+    <a href="#worlds">Worlds</a>
+    <a href="#log">Log</a>
+    <a href="#telemetry">Telemetry</a>
+    <a href="#footer">Contact</a>
+  </div>
+
   <!-- ═══════════════════════════ HERO ═══════════════════════════ -->
   <section id="hero">
-
-    <!-- Layer 1 — sky background -->
     <div class="lw" id="bgWrap">
-      <img class="layer-bg" src="background.png" alt="">
+      <img class="layer-bg" src="background.jpg" alt="">
     </div>
 
-    <!-- Layer 2 — BEYOND title (behind planet) -->
+    <!-- Horizon mist (between landscape and title) -->
+    <div class="lw" id="mistWrap" aria-hidden="true">
+      <div class="mist mist--a"></div>
+      <div class="mist mist--b"></div>
+    </div>
+
     <div class="hero-title-wrap">
-      <h1 class="hero-title">BEYOND</h1>
+      <h1 class="hero-title" aria-label="Beyond"><span>B</span><span>E</span><span>Y</span><span>O</span><span>N</span><span>D</span></h1>
     </div>
 
-    <!-- Layer 3 — planet -->
     <div class="lw" id="planetWrap">
-      <img class="layer-planet" src="planet.png" alt="">
+      <div class="planet-stage" id="planetStage" data-cursor="Drag">
+        <div class="planet-glow" id="planetGlow"></div>
+        <div class="orbit" aria-hidden="true"><span class="sat"></span></div>
+        <div class="warp" id="warp" aria-hidden="true"></div>
+        <img class="layer-planet is-front" id="heroPlanet" src="planet.png" alt="Kaelen-IV, a rust-red rocky world" draggable="false">
+        <img class="layer-planet" id="heroPlanetB" src="planet1.png" alt="" draggable="false" aria-hidden="true">
+      </div>
     </div>
 
-    <!-- Layer 3 — atmospheric haze -->
-    <div class="lw" id="hazeWrap">
-      <div class="layer-haze"></div>
+    <!-- Atmosphere in front of the planet: sells the distance -->
+    <div class="lw" id="mistFront" aria-hidden="true"><div class="mist mist--front"></div></div>
+
+    <div class="lw" id="hazeWrap"><div class="layer-haze"></div></div>
+
+    <!-- Foreground grass — two depths, swaying in the wind -->
+    <div class="lw" id="fgWrap" aria-hidden="true">
+      <div class="fg-wind" id="fgWind">
+        <div class="layer-fg layer-fg--back"></div>
+        <div class="layer-fg layer-fg--front"></div>
+      </div>
+      <div class="dust" id="dust"></div>
     </div>
 
-    <!-- Hero copy — subtitle only, z-index 6 -->
-    <div class="hero-content">
-      <p class="hero-sub">THE FINAL FRONTIER AWAITS</p>
+    <div class="hero-vignette" aria-hidden="true"></div>
+
+    <div class="hero-bottom">
+      <div class="hero-copy">
+        <p class="hero-sub">The final frontier is not empty — it's <em>waiting to be read.</em></p>
+        <a href="#worlds" class="btn-round" data-magnetic data-cursor="Go">
+          <span>Explore<br>worlds</span>
+        </a>
+      </div>
+
+      <div class="planet-picker" role="group" aria-label="Choose a planet">
+        <div class="pp-head">
+          <div class="pp-meta">
+            <span class="pp-name" id="ppName">Kaelen-IV</span>
+            <span class="pp-type" id="ppType">Rocky world · 1,120 LY</span>
+          </div>
+          <div class="pp-arrows">
+            <button class="pp-arrow" id="ppPrev" aria-label="Previous planet" data-magnetic>←</button>
+            <button class="pp-arrow" id="ppNext" aria-label="Next planet" data-magnetic>→</button>
+          </div>
+        </div>
+        <div class="pp-thumbs" id="ppThumbs">
+          <button class="pp-thumb active" data-i="0" aria-label="Kaelen-IV"><img src="planet.png" alt=""></button>
+          <button class="pp-thumb" data-i="1" aria-label="Azura-7b"><img src="planet1.png" alt=""></button>
+          <button class="pp-thumb" data-i="2" aria-label="Korreth Expanse"><img src="planet2.png" alt=""></button>
+          <button class="pp-thumb" data-i="3" aria-label="Sorel Prime"><img src="planet3.png" alt=""></button>
+          <button class="pp-thumb" data-i="4" aria-label="Nythari Veil"><img src="planet4.png" alt=""></button>
+        </div>
+        <p class="pp-hint">Select a world, drag the planet, or use ← → keys</p>
+      </div>
     </div>
 
-    <!-- Scroll indicator -->
-    <div class="scroll-cue">
-      <span>SCROLL TO EXPLORE</span>
-      <div class="scroll-line"></div>
-    </div>
-
-    <!-- Scrim: darkens hero as mission card rises over it -->
     <div id="heroScrim"></div>
-
+    <div id="heroFade" aria-hidden="true"></div>
   </section>
 
-  <!-- ═══════════════════════════ MISSION / SUIT VIEWER ═══════════════════════════ -->
-  <div id="missionPin">
-  <section id="mission">
-    <canvas id="starsCanvas"></canvas>
+  <!-- ═══════════════════════════ MARQUEE ═══════════════════════════ -->
+  <div class="trust depth" aria-label="Survey data partners">
+    <span class="trust-lbl">Survey data streamed from</span>
+    <div class="trust-viewport">
+      <div class="marquee-track" id="marquee1">
+        <span class="trust-set">
+          <b><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="2.5"/></svg>ARIA Observatory</b>
+          <b><svg viewBox="0 0 20 20"><ellipse cx="10" cy="10" rx="8.5" ry="3.5"/><circle cx="10" cy="10" r="4"/></svg>Helion Space Telescope</b>
+          <b><svg viewBox="0 0 20 20"><path d="M10 2 18 17H2Z"/></svg>Nexus Deep Field</b>
+          <b><svg viewBox="0 0 20 20"><circle cx="6" cy="10" r="4"/><circle cx="14" cy="10" r="4"/></svg>Solaris Interferometry</b>
+          <b><svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="3"/><path d="M3 10h14"/></svg>Kepler Drift Station</b>
+          <b><svg viewBox="0 0 20 20"><path d="M2 16 10 4l8 12"/><path d="M6 16h8"/></svg>Ground Station 7</b>
+        </span>
+        <span class="trust-set" aria-hidden="true">
+          <b><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="2.5"/></svg>ARIA Observatory</b>
+          <b><svg viewBox="0 0 20 20"><ellipse cx="10" cy="10" rx="8.5" ry="3.5"/><circle cx="10" cy="10" r="4"/></svg>Helion Space Telescope</b>
+          <b><svg viewBox="0 0 20 20"><path d="M10 2 18 17H2Z"/></svg>Nexus Deep Field</b>
+          <b><svg viewBox="0 0 20 20"><circle cx="6" cy="10" r="4"/><circle cx="14" cy="10" r="4"/></svg>Solaris Interferometry</b>
+          <b><svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="3"/><path d="M3 10h14"/></svg>Kepler Drift Station</b>
+          <b><svg viewBox="0 0 20 20"><path d="M2 16 10 4l8 12"/><path d="M6 16h8"/></svg>Ground Station 7</b>
+        </span>
+      </div>
+    </div>
+  </div>
 
-    <!-- Section header -->
-    <header class="suit-hdr">
-      <p class="suit-hdr-tag">MISSION EQUIPMENT</p>
-      <h2 class="suit-hdr-name">WHITE SENTINEL</h2>
-      <p class="suit-hdr-sub">SELECT A COMPONENT TO VIEW SYSTEMS DATA</p>
-    </header>
 
-    <!-- Full-section 3D viewer -->
-    <div class="suit-viewer" id="suitViewer">
-      <canvas id="suitCanvas"></canvas>
+  <!-- ═══════════════════════════ ARCHIVE — 3D carousel ═══════════════════════════ -->
+  <section id="archive" class="depth">
+    <div class="ar-hdr">
+      <h2 class="ar-title split">The <em>archive</em> in orbit</h2>
+      <p class="ar-sub">Every world we've charted and every machine that carried us there. Drag, swipe or use the arrows to turn the collection.</p>
+    </div>
 
-      <div class="suit-loading" id="suitLoading">
-        <div class="suit-spinner"></div>
-        <span class="suit-loading-label">INITIALISING MODEL</span>
+    <div class="ar-stage" id="arStage" data-cursor="Drag" tabindex="0" aria-roledescription="carousel" aria-label="Archive of worlds and spacecraft">
+      <div class="ar-floor" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="ar-ring" id="arRing"></div>
+    </div>
+
+    <div class="ar-info">
+      <div class="ar-meta" aria-live="polite">
+        <span class="ar-kind" id="arKind">World</span>
+        <h3 class="ar-name" id="arName">Kaelen-IV</h3>
+        <p class="ar-desc" id="arDesc"></p>
+      </div>
+      <dl class="ar-specs" id="arSpecs"></dl>
+      <div class="ar-ctrl">
+        <button class="pp-arrow" id="arPrev" aria-label="Previous item" data-magnetic>←</button>
+        <div class="ar-dots" id="arDots" aria-hidden="true"></div>
+        <button class="pp-arrow" id="arNext" aria-label="Next item" data-magnetic>→</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ EXPEDITION ═══════════════════════════ -->
+  <section id="expedition" class="depth">
+    <div class="x-hdr">
+      <h2 class="x-title split">From a faint <em>signal</em> to the first footprint</h2>
+      <p class="x-sub">Every world in the catalogue passes through the same three gates before a single boot touches its surface. Each instrument below is live: tune it, probe it, fly it.</p>
+    </div>
+
+    <!-- Route: connects the three stages -->
+    <ol class="x-route" aria-label="Mission stages">
+      <li class="is-on"><b>01</b><span>Detect</span></li>
+      <li><b>02</b><span>Map</span></li>
+      <li><b>03</b><span>Descend</span></li>
+      <i class="x-route-fill" id="xRouteFill" aria-hidden="true"></i>
+    </ol>
+
+    <div class="x-cards">
+      <!-- 01 LISTEN -->
+      <div class="x-float" data-speed="0.04">
+        <article class="x-card glass" data-tilt data-stage="0">
+          <header class="x-chead"><span class="x-step">01 / Detect</span><span class="x-status" id="xLock">Scanning</span></header>
+          <div class="x-vis x-vis--listen x-frame" id="xListen" tabindex="0" role="slider" aria-label="Tune receiver frequency" aria-valuemin="1400" aria-valuemax="1440" aria-valuenow="1420">
+            <canvas id="waveCanvas" aria-hidden="true"></canvas>
+            <i class="x-tuner" id="xTuner" aria-hidden="true"><b id="xTunerLbl">1420.0</b></i>
+            <div class="x-ticks" aria-hidden="true"><span>1400</span><span>1410</span><span>1420</span><span>1430</span><span>1440</span></div>
+          </div>
+          <div class="x-read x-read--3">
+            <div><b id="xFreq">1420.0</b><span>MHz tuned</span></div>
+            <div><b id="xConf">12%</b><span>Confidence</span></div>
+            <div><b id="xAnom">37</b><span>Flagged today</span></div>
+          </div>
+          <h3>Listen</h3>
+          <p>Move across the scope to tune the receiver. Find the hydrogen line, then click or press Enter to lock it.</p>
+        </article>
       </div>
 
-      <div class="hs-overlay" id="hsOverlay">
-        <svg class="hs-svg" id="hsSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;">
-          <path class="hs-connector" id="hsConnector" d=""/>
-        </svg>
+      <!-- 02 SURVEY -->
+      <div class="x-float x-float--hero" data-speed="-0.03">
+        <article class="x-card glass" data-tilt data-stage="1">
+          <header class="x-chead"><span class="x-step">02 / Map</span><span class="x-status x-status--sky"><b id="xPct">0</b>% mapped</span></header>
+          <div class="x-vis x-vis--survey x-frame" id="xSurvey" data-layer="visible">
+            <img src="planet3.png" alt="Sorel Prime under survey" loading="lazy" id="xSurveyImg">
+            <i class="x-grid" aria-hidden="true"></i>
+            <i class="scan" aria-hidden="true"></i>
+            <svg class="x-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46"/><circle class="x-ring-fill" id="xRing" cx="50" cy="50" r="46"/></svg>
+            <div class="x-reticle" id="xReticle" aria-hidden="true"><i></i><span id="xSample">—</span></div>
+            <span class="x-coord" id="xCoord">LAT 00.0° · LON 000.0°</span>
+          </div>
+          <div class="x-layers" role="group" aria-label="Survey layer">
+            <button class="active" data-layer="visible" aria-pressed="true">Visible</button>
+            <button data-layer="thermal" aria-pressed="false">Thermal</button>
+            <button data-layer="atmos" aria-pressed="false">Atmosphere</button>
+          </div>
+          <h3>Survey</h3>
+          <p id="xLayerNote">Visible light: cloud bands and storm systems, 0.4–0.7 µm. Hover the planet to sample it.</p>
+        </article>
       </div>
 
-      <div class="suit-hint" id="suitHint">DRAG TO ROTATE</div>
-
-      <!-- ── JARVIS HUD ── -->
-      <div class="hud" id="hud">
-
-        <!-- Rotating rings -->
-        <svg class="hud-rings" viewBox="-300 -300 600 600" xmlns="http://www.w3.org/2000/svg">
-          <g class="hud-g hud-g--cw-a">
-            <circle r="280" fill="none" stroke="rgba(231,76,60,0.14)" stroke-width="1" stroke-dasharray="3 22"/>
-          </g>
-          <g class="hud-g hud-g--ccw-b">
-            <circle r="244" fill="none" stroke="rgba(231,76,60,0.38)" stroke-width="1.5" stroke-dasharray="18 9"/>
-            <line x1="0" y1="-252" x2="0" y2="-236" stroke="rgba(231,76,60,0.7)" stroke-width="2"/>
-            <line x1="252" y1="0" x2="236" y2="0" stroke="rgba(231,76,60,0.7)" stroke-width="2"/>
-            <line x1="0" y1="252" x2="0" y2="236" stroke="rgba(231,76,60,0.7)" stroke-width="2"/>
-            <line x1="-252" y1="0" x2="-236" y2="0" stroke="rgba(231,76,60,0.7)" stroke-width="2"/>
-          </g>
-          <g class="hud-g hud-g--cw-c">
-            <circle r="206" fill="none" stroke="rgba(231,76,60,0.55)" stroke-width="1.5" stroke-dasharray="78 24"/>
-          </g>
-          <g class="hud-g hud-g--ccw-d">
-            <circle r="166" fill="none" stroke="rgba(231,76,60,0.2)" stroke-width="1" stroke-dasharray="6 4"/>
-          </g>
-          <!-- Axis hairlines -->
-          <line x1="-300" y1="0" x2="300" y2="0" stroke="rgba(231,76,60,0.05)" stroke-width="1"/>
-          <line x1="0" y1="-300" x2="0" y2="300" stroke="rgba(231,76,60,0.05)" stroke-width="1"/>
-          <!-- Cardinal ticks on outer ring -->
-          <line x1="-9" y1="-280" x2="9" y2="-280" stroke="rgba(231,76,60,0.6)" stroke-width="2"/>
-          <line x1="280" y1="-9" x2="280" y2="9" stroke="rgba(231,76,60,0.6)" stroke-width="2"/>
-          <line x1="-9" y1="280" x2="9" y2="280" stroke="rgba(231,76,60,0.6)" stroke-width="2"/>
-          <line x1="-280" y1="-9" x2="-280" y2="9" stroke="rgba(231,76,60,0.6)" stroke-width="2"/>
-        </svg>
-
-        <!-- Horizontal scan sweep -->
-        <div class="hud-scan"></div>
-
-        <!-- Corner targeting brackets -->
-        <div class="hud-br hud-br--tl"></div>
-        <div class="hud-br hud-br--tr"></div>
-        <div class="hud-br hud-br--bl"></div>
-        <div class="hud-br hud-br--br"></div>
-
-        <!-- TL — Unit / Integrity -->
-        <div class="hud-data hud-data--tl">
-          <div class="hud-lbl">UNIT DESIGNATION</div>
-          <div class="hud-val">WHITE SENTINEL</div>
-          <div class="hud-sub">MK.VII &nbsp;·&nbsp; #WS-0047-α</div>
-          <div class="hud-sep"></div>
-          <div class="hud-bar-row">
-            <span class="hud-lbl">HULL INTEGRITY</span>
-            <span class="hud-acc">94%</span>
+      <!-- 03 LAND -->
+      <div class="x-float" data-speed="0.06">
+        <article class="x-card glass" data-tilt data-stage="2">
+          <header class="x-chead"><span class="x-step">03 / Descend</span><span class="x-status x-status--red" id="xPhase">Approach</span></header>
+          <div class="x-vis x-vis--land x-frame" id="xLand">
+            <svg viewBox="0 0 300 225" class="x-traj" aria-hidden="true">
+              <g class="x-ruler">
+                <line x1="22" y1="20" x2="22" y2="178"/>
+                <g id="xRulerTicks"></g>
+              </g>
+              <path class="x-terrain" d="M0 190 L30 184 L55 188 L80 176 L110 182 L135 179 L160 186 L190 186 L215 178 L240 183 L270 172 L300 180 L300 225 L0 225Z"/>
+              <path id="xPath" d="M60 22 C 170 26, 245 90, 175 186"/>
+              <g class="x-target" transform="translate(175 186)"><ellipse rx="22" ry="5"/><ellipse rx="11" ry="2.5"/></g>
+            </svg>
+            <img class="lander" id="xLander" src="lander.png" alt="" draggable="false">
+            <span class="x-alt">ALT <b id="xAlt">120.0</b> km</span>
+            <span class="x-vel">V <b id="xVel">1.84</b> km/s</span>
           </div>
-          <div class="hud-bar"><div class="hud-bar-fill" style="width:94%"></div></div>
-          <div class="hud-lbl mt">MISSION UPTIME</div>
-          <div class="hud-val hud-mono" id="hudTimer">00:00:00</div>
-        </div>
-
-        <!-- TR — Power -->
-        <div class="hud-data hud-data--tr">
-          <div class="hud-lbl">POWER SYSTEMS</div>
-          <div class="hud-val" id="hudPower">87.4%</div>
-          <div class="hud-bar-row">
-            <span class="hud-lbl">OUTPUT</span>
-            <span class="hud-acc" id="hudOutput">23.1 kW</span>
+          <div class="x-scrub">
+            <button class="x-replay" id="xReplay" aria-label="Replay descent">↻</button>
+            <input type="range" id="xScrub" min="0" max="1000" value="0" aria-label="Scrub descent">
           </div>
-          <div class="hud-bar"><div class="hud-bar-fill" id="hudPowerBar" style="width:87%"></div></div>
-          <div class="hud-sep"></div>
-          <div class="hud-lbl">REACTOR TEMP</div>
-          <div class="hud-val" id="hudTemp">312 K</div>
-        </div>
-
-        <!-- BL — Life support -->
-        <div class="hud-data hud-data--bl">
-          <div class="hud-lbl">LIFE SUPPORT</div>
-          <div class="hud-sep"></div>
-          <div class="hud-row"><span class="hud-lbl">O₂ SUPPLY</span><span class="hud-acc" id="hudO2">99.1%</span></div>
-          <div class="hud-row"><span class="hud-lbl">CO₂ SCRUB</span><span class="hud-green">NOMINAL</span></div>
-          <div class="hud-row"><span class="hud-lbl">PRESSURE</span><span class="hud-acc" id="hudPsi">14.7 PSI</span></div>
-          <div class="hud-row"><span class="hud-lbl">CORE TEMP</span><span class="hud-acc">36.8 °C</span></div>
-        </div>
-
-        <!-- BR — Navigation -->
-        <div class="hud-data hud-data--br">
-          <div class="hud-lbl">NAVIGATION</div>
-          <div class="hud-sep"></div>
-          <div class="hud-row"><span class="hud-lbl">SIGNAL</span><span class="hud-acc" id="hudSignal">98.2%</span></div>
-          <div class="hud-row"><span class="hud-lbl">ALTITUDE</span><span class="hud-acc">408 km</span></div>
-          <div class="hud-row"><span class="hud-lbl">VELOCITY</span><span class="hud-acc" id="hudVel">7.66 km/s</span></div>
-          <div class="hud-row"><span class="hud-lbl">ORBIT NO.</span><span class="hud-acc">#423</span></div>
-        </div>
-
-        <!-- Bottom-centre status -->
-        <div class="hud-status">
-          <span class="hud-status-dot"></span>
-          <span class="hud-status-txt">ALL SYSTEMS OPERATIONAL</span>
-          <span class="hud-status-dot"></span>
-        </div>
-
-      </div><!-- /.hud -->
-    </div>
-
-  </section>
-  </div><!-- /#missionPin -->
-
-  <!-- ═══════════════════════════ DISCOVERIES ═══════════════════════════ -->
-  <section id="discoveries">
-
-    <div class="journal-hdr">
-      <h2 class="sec-title ain">NOTABLE DISCOVERIES</h2>
-      <div class="sec-rule"></div>
-      <p class="journal-sub ain">Field notes from the edge of known space</p>
-    </div>
-
-    <div class="journal">
-
-      <!-- ── 01 · Azura-7b (image left · text right) ── -->
-      <article class="j-entry ain">
-        <div class="j-img">
-          <img src="planet1.png" alt="Azura-7b, an ocean world wrapped in violet cloud bands" loading="lazy">
-          <span class="j-img-cap">SYNTHETIC RENDER — NEXUS SURVEY INITIATIVE · CYCLE 4</span>
-        </div>
-        <div class="j-text">
-          <div class="j-num">01</div>
-          <div class="j-tag">EXOPLANET · VELORIS SYSTEM</div>
-          <h3 class="j-title">Azura-7b</h3>
-          <p class="j-lede">A vast ocean world cloaked in violet cloud bands, tracing a figure-eight orbit around twin suns at the edge of the Veloris drift.</p>
-          <p class="j-body">Discovered during the second sweep of the Nexus Deep Field Survey, Azura-7b defies every conventional planetary model. Its upper atmosphere — saturated with ammonia halos and crystalline water vapour lattices — scatters incoming stellar radiation into the distinctive violet shimmer observable even at interstellar range. Most extraordinary is its trajectory: the planet orbits both stars of the Veloris binary system in a stable figure-eight resonance, completing one dual-star cycle every 847 standard days without orbital decay.</p>
-          <div class="j-meta">
-            <div class="j-meta-item">
-              <span class="j-meta-lbl">CONFIRMED</span>
-              <span class="j-meta-val">March 3, 2031</span>
-            </div>
-            <div class="j-meta-item">
-              <span class="j-meta-lbl">INSTRUMENT</span>
-              <span class="j-meta-val">Nexus Deep Field Array — Unit 4</span>
-            </div>
+          <div class="x-read">
+            <div><b id="xWindow">02:14:33</b><span>Next descent window</span></div>
+            <div><b>Crimson Flats</b><span>Landing zone · Kaelen-IV</span></div>
           </div>
-          <div class="j-data">
-            <div class="j-datum">
-              <span class="j-datum-val">2,340</span>
-              <span class="j-datum-lbl">LIGHT-YEARS</span>
-            </div>
-            <div class="j-datum">
-              <span class="j-datum-val">4.2×</span>
-              <span class="j-datum-lbl">EARTH MASS</span>
-            </div>
-            <div class="j-datum">
-              <span class="j-datum-val">847d</span>
-              <span class="j-datum-lbl">DUAL-ORBIT CYCLE</span>
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <!-- ── 02 · Korreth Expanse (text left · image right) ── -->
-      <article class="j-entry ain">
-        <div class="j-img">
-          <img src="planet2.png" alt="The eleven rogue bodies of the Korreth Expanse drifting through the void" loading="lazy">
-          <span class="j-img-cap">COMPOSITE SCAN — SOLARIS INTERFEROMETRY STATION · RING-7</span>
-        </div>
-        <div class="j-text">
-          <div class="j-num">02</div>
-          <div class="j-tag">ROGUE CLUSTER · DRACO-MINOR VOID</div>
-          <h3 class="j-title">Korreth Expanse</h3>
-          <p class="j-lede">Eleven planetary bodies drifting in loose formation through the void — no star, no orbit, no anchor.</p>
-          <p class="j-body">The Korreth Expanse is the largest known cluster of rogue planetary-mass objects ever catalogued. Eleven bodies ranging from sub-Neptune to near-Jovian in scale travel together through interstellar space, collectively generating enough residual tidal heat within their larger members to sustain liquid water reservoirs deep beneath their frozen crusts. What force originally ejected them — and why they remain in such precise gravitational formation — has no accepted explanation in current theory.</p>
-          <div class="j-meta">
-            <div class="j-meta-item">
-              <span class="j-meta-lbl">CATALOGUED</span>
-              <span class="j-meta-val">November 18, 2028</span>
-            </div>
-            <div class="j-meta-item">
-              <span class="j-meta-lbl">INSTRUMENT</span>
-              <span class="j-meta-val">Solaris Interferometry Station · Ring-7</span>
-            </div>
-          </div>
-          <div class="j-data">
-            <div class="j-datum">
-              <span class="j-datum-val">890</span>
-              <span class="j-datum-lbl">LIGHT-YEARS</span>
-            </div>
-            <div class="j-datum">
-              <span class="j-datum-val">11</span>
-              <span class="j-datum-lbl">ROGUE BODIES</span>
-            </div>
-            <div class="j-datum">
-              <span class="j-datum-val">3.8×</span>
-              <span class="j-datum-lbl">LARGEST · JUPITER MASS</span>
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <!-- ── 03 · Sorel Prime (image left · text right) ── -->
-      <article class="j-entry ain">
-        <div class="j-img">
-          <img src="planet3.png" alt="The crystalline spire fields of Sorel Prime bathed in trinary starlight" loading="lazy">
-          <span class="j-img-cap">SPECTRAL COMPOSITE — ARIA OBSERVATORY · DEEP SURVEY MODE</span>
-        </div>
-        <div class="j-text">
-          <div class="j-num">03</div>
-          <div class="j-tag">EXOPLANET · SOREL TRINARY SYSTEM</div>
-          <h3 class="j-title">Sorel Prime</h3>
-          <p class="j-lede">The only known world where silicate pressure events have raised crystalline spires forty kilometres into a sky lit by three suns simultaneously.</p>
-          <p class="j-body">Sorel Prime holds the innermost stable orbit within a trinary stellar arrangement — three stars whose shifting gravitational dance bathes the surface in constantly changing spectral colour throughout its brief 19-day year. What makes it singular is not its orbit but its geology: catastrophic sub-surface pressure events have produced continent-spanning fields of crystalline silicate formations, the tallest measured at 43.7 kilometres. Whether these spires are geologically inert or part of an active mineral respiration cycle remains the defining question of the Sorel mission.</p>
-          <div class="j-meta">
-            <div class="j-meta-item">
-              <span class="j-meta-lbl">CONFIRMED</span>
-              <span class="j-meta-val">August 7, 2033</span>
-            </div>
-            <div class="j-meta-item">
-              <span class="j-meta-lbl">INSTRUMENT</span>
-              <span class="j-meta-val">ARIA Observatory — Deep Survey</span>
-            </div>
-          </div>
-          <div class="j-data">
-            <div class="j-datum">
-              <span class="j-datum-val">3,710</span>
-              <span class="j-datum-lbl">LIGHT-YEARS</span>
-            </div>
-            <div class="j-datum">
-              <span class="j-datum-val">0.88×</span>
-              <span class="j-datum-lbl">EARTH RADIUS</span>
-            </div>
-            <div class="j-datum">
-              <span class="j-datum-val">19d</span>
-              <span class="j-datum-lbl">ORBITAL PERIOD</span>
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <!-- ── 04 · Nythari Veil (text left · image right) ── -->
-      <article class="j-entry ain">
-        <div class="j-img">
-          <img src="planet4.png" alt="The Nythari Veil nebula, luminous threads of organic-rich gas spanning hundreds of light-years" loading="lazy">
-          <span class="j-img-cap">INFRARED MOSAIC — HELION SPACE TELESCOPE · ARRAY BETA</span>
-        </div>
-        <div class="j-text">
-          <div class="j-num">04</div>
-          <div class="j-tag">NEBULA · SCORPIUS OUTER ARM</div>
-          <h3 class="j-title">Nythari Veil</h3>
-          <p class="j-lede">A gaseous remnant so saturated with pre-biotic compounds that some researchers believe it is actively seeding eleven nearby star systems with life's raw materials.</p>
-          <p class="j-body">Spanning approximately 340 light-years along its longest axis, the Nythari Veil is unlike any diffuse nebula previously charted. Spectroscopic passes by the Helion telescope revealed an extraordinary concentration of complex organics distributed uniformly throughout the cloud — forty-seven distinct pre-biotic compounds including amino acid precursors, nucleobase analogues, and long-chain carbon scaffolds. The hypothesis that the Veil functions as an active dispersal mechanism — a cosmic seed-cloud — for the eleven stellar systems embedded within it remains the most fiercely contested theory in contemporary astrobiology.</p>
-          <div class="j-meta">
-            <div class="j-meta-item">
-              <span class="j-meta-lbl">OBSERVED</span>
-              <span class="j-meta-val">February 2, 2035</span>
-            </div>
-            <div class="j-meta-item">
-              <span class="j-meta-lbl">INSTRUMENT</span>
-              <span class="j-meta-val">Helion Space Telescope — Array Beta</span>
-            </div>
-          </div>
-          <div class="j-data">
-            <div class="j-datum">
-              <span class="j-datum-val">5,200</span>
-              <span class="j-datum-lbl">LIGHT-YEARS</span>
-            </div>
-            <div class="j-datum">
-              <span class="j-datum-val">~340 LY</span>
-              <span class="j-datum-lbl">NEBULA SPAN</span>
-            </div>
-            <div class="j-datum">
-              <span class="j-datum-val">47</span>
-              <span class="j-datum-lbl">ORGANIC COMPOUNDS</span>
-            </div>
-          </div>
-        </div>
-      </article>
-
+          <h3>Land</h3>
+          <p>Drag the slider to fly the descent yourself, or replay the automated landing.</p>
+        </article>
+      </div>
     </div>
   </section>
 
-  <!-- ═══════════════════════════ PARALLAX BREAK ═══════════════════════════ -->
+  <!-- ═══════════════════════════ WORLDS INDEX ═══════════════════════════ -->
+  <section id="worlds" class="depth">
+    <div class="w-hdr">
+      <h2 class="w-title split">Catalogue of <em>uncharted</em> worlds</h2>
+      <p class="w-sub">Four confirmed anomalies beyond Kaelen-IV, our home survey world. Hover to preview, open to read the full field notes.</p>
+    </div>
+
+    <!-- Floating hover preview -->
+    <div class="w-preview" id="wPreview" aria-hidden="true">
+      <img src="planet1.png" alt="" id="wPreviewImg">
+    </div>
+
+    <ol class="w-list" id="wList">
+
+      <li class="w-item" data-img="planet1.png" data-glow="#5b8cff">
+        <button class="w-row" aria-expanded="false" data-cursor="Open">
+          <span class="w-name">Azura-7b</span>
+          <span class="w-type">Exoplanet · Veloris</span>
+          <span class="w-dist">2,340 LY</span>
+          <span class="w-plus" aria-hidden="true"></span>
+        </button>
+        <div class="w-panel">
+          <div class="w-panel-inner">
+            <img class="w-panel-img" src="planet1.png" alt="Azura-7b, an ocean world under pale cloud bands" loading="lazy">
+            <div class="w-panel-text">
+              <p class="w-lede">A vast ocean world cloaked in violet cloud bands, tracing a figure-eight orbit around twin suns.</p>
+              <p class="w-body">Discovered during the second sweep of the Nexus Deep Field Survey, Azura-7b defies every conventional planetary model. Its upper atmosphere — saturated with ammonia halos and crystalline water vapour lattices — scatters stellar radiation into a violet shimmer observable even at interstellar range. It completes one dual-star cycle every 847 standard days without orbital decay.</p>
+              <div class="w-data">
+                <div class="chip"><b>4.2×</b><span>Earth mass</span></div>
+                <div class="chip"><b>847d</b><span>Dual-orbit cycle</span></div>
+                <div class="chip"><b>2031</b><span>Confirmed</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <li class="w-item" data-img="planet2.png" data-glow="#d9a066">
+        <button class="w-row" aria-expanded="false" data-cursor="Open">
+          <span class="w-name">Korreth Expanse</span>
+          <span class="w-type">Rogue cluster · Draco</span>
+          <span class="w-dist">890 LY</span>
+          <span class="w-plus" aria-hidden="true"></span>
+        </button>
+        <div class="w-panel">
+          <div class="w-panel-inner">
+            <img class="w-panel-img" src="planet2.png" alt="A dark ringed rogue world of the Korreth Expanse" loading="lazy">
+            <div class="w-panel-text">
+              <p class="w-lede">Eleven planetary bodies drifting in loose formation through the void — no star, no orbit, no anchor.</p>
+              <p class="w-body">The largest known cluster of rogue planetary-mass objects ever catalogued. Bodies from sub-Neptune to near-Jovian scale travel together, generating enough residual tidal heat to keep liquid water beneath their frozen crusts. What ejected them — and why they hold such precise formation — has no accepted explanation.</p>
+              <div class="w-data">
+                <div class="chip"><b>11</b><span>Rogue bodies</span></div>
+                <div class="chip"><b>3.8×</b><span>Jupiter mass</span></div>
+                <div class="chip"><b>2028</b><span>Catalogued</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <li class="w-item" data-img="planet3.png" data-glow="#3fd08a">
+        <button class="w-row" aria-expanded="false" data-cursor="Open">
+          <span class="w-name">Sorel Prime</span>
+          <span class="w-type">Exoplanet · Trinary</span>
+          <span class="w-dist">3,710 LY</span>
+          <span class="w-plus" aria-hidden="true"></span>
+        </button>
+        <div class="w-panel">
+          <div class="w-panel-inner">
+            <img class="w-panel-img" src="planet3.png" alt="Sorel Prime, a banded jade gas giant" loading="lazy">
+            <div class="w-panel-text">
+              <p class="w-lede">Crystalline spires forty kilometres tall, under a sky lit by three suns at once.</p>
+              <p class="w-body">Sorel Prime holds the innermost stable orbit within a trinary system, bathed in shifting spectral colour through its 19-day year. Sub-surface pressure events have raised continent-spanning fields of silicate formations — the tallest measured at 43.7 km. Whether they are inert or part of a mineral respiration cycle defines the mission.</p>
+              <div class="w-data">
+                <div class="chip"><b>0.88×</b><span>Earth radius</span></div>
+                <div class="chip"><b>19d</b><span>Orbital period</span></div>
+                <div class="chip"><b>2033</b><span>Confirmed</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <li class="w-item" data-img="planet4.png" data-glow="#4fb6e0">
+        <button class="w-row" aria-expanded="false" data-cursor="Open">
+          <span class="w-name">Nythari Veil</span>
+          <span class="w-type">Nebula world · Scorpius</span>
+          <span class="w-dist">5,200 LY</span>
+          <span class="w-plus" aria-hidden="true"></span>
+        </button>
+        <div class="w-panel">
+          <div class="w-panel-inner">
+            <img class="w-panel-img" src="planet4.png" alt="The Nythari world, a cyan-blue ice giant" loading="lazy">
+            <div class="w-panel-text">
+              <p class="w-lede">So saturated with pre-biotic compounds it may be seeding eleven star systems with life's raw materials.</p>
+              <p class="w-body">Spanning roughly 340 light-years, the Nythari Veil is unlike any nebula previously charted. Spectroscopic passes revealed forty-seven distinct pre-biotic compounds — amino acid precursors, nucleobase analogues and long-chain carbon scaffolds — distributed uniformly through the cloud.</p>
+              <div class="w-data">
+                <div class="chip"><b>~340</b><span>LY span</span></div>
+                <div class="chip"><b>47</b><span>Organics</span></div>
+                <div class="chip"><b>2035</b><span>Observed</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+    </ol>
+  </section>
+
+  <!-- ═══════════════════════════ MISSION LOG (horizontal) ═══════════════════════════ -->
+  <section id="log" class="depth">
+    <div class="log-pin" id="logPin">
+      <div class="log-hdr">
+        <h2 class="log-title split">The long <em>road</em> out</h2>
+        <p class="log-sub">Scroll to travel the mission log — from the first beep in orbit to the first step on Kaelen-IV.</p>
+      </div>
+      <div class="log-track" id="logTrack">
+        <article class="log-card"><span class="log-year">1957</span><h3>Sputnik 1</h3><p>The first artificial satellite beeps from orbit. The space age begins with a sound.</p></article>
+        <article class="log-card log-card--hi"><span class="log-year">1969</span><h3>Apollo 11</h3><p>Two humans walk on the Moon. Exploration stops being a dream and becomes a schedule.</p></article>
+        <article class="log-card"><span class="log-year">1990</span><h3>Hubble</h3><p>An eye above the atmosphere rewrites the scale of the universe, one deep field at a time.</p></article>
+        <article class="log-card log-card--hi"><span class="log-year">2021</span><h3>James Webb</h3><p>Infrared sight reaches the first light — and starts reading the air of distant worlds.</p></article>
+        <article class="log-card log-card--accent"><span class="log-year">2031</span><h3>Azura-7b confirmed</h3><p>The Nexus survey confirms a figure-eight ocean world orbiting twin suns.</p><img src="planet1.png" alt="" loading="lazy"></article>
+        <article class="log-card"><span class="log-year">2035</span><h3>Nythari Veil</h3><p>Forty-seven pre-biotic compounds detected in one cloud. The seed-cloud debate begins.</p><img src="planet4.png" alt="" loading="lazy"></article>
+        <article class="log-card log-card--red"><span class="log-year">2040</span><h3>First footprint</h3><p>A lone astronaut steps into the crimson grass of Kaelen-IV. The catalogue gets its first visitor.</p><img src="planet.png" alt="" loading="lazy"></article>
+      </div>
+      <div class="log-progress"><span id="logBar"></span></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ TELEMETRY ═══════════════════════════ -->
+  <section id="telemetry" class="depth">
+    <div class="t-hdr">
+      <h2 class="t-title split">Live from the <em>edge</em></h2>
+      <p class="t-sub">Mission telemetry from the survey fleet. Hover any readout for detail, click to switch units or pin a view.</p>
+    </div>
+
+    <div class="t-console-bar">
+      <span class="t-feed"><span class="live-dot"></span>Simulated feed</span>
+      <span>Uplink <b>GS-7 → RELAY-2</b></span>
+      <span>Latency <b id="tLat">412</b> ms</span>
+      <span>Last packet <b id="tStamp">00:00:00</b> UTC</span>
+    </div>
+
+    <div class="t-grid">
+      <!-- SIGNAL -->
+      <div class="t-tile t-tile--wide glass" id="tSigTile">
+        <div class="t-top"><span class="t-lbl">Signal strength</span><span class="t-code">SIG-01</span></div>
+        <div class="t-row">
+          <span class="t-val"><b id="tSignal">98.2</b><small>%</small></span>
+          <span class="t-peak">Peak <b id="tPeak">99.1</b>% · <button class="t-chip" id="tHold" aria-pressed="false">Hold trace</button></span>
+        </div>
+        <div class="t-bars" id="tBars"><i class="t-thresh" aria-hidden="true"><span>Lock threshold 40%</span></i></div>
+        <span class="t-tip" id="tBarTip" aria-hidden="true"></span>
+      </div>
+
+      <!-- VELOCITY -->
+      <button class="t-tile glass t-click" id="tVelTile" aria-label="Fleet velocity, click to switch units">
+        <div class="t-top"><span class="t-lbl">Fleet velocity</span><span class="t-code">VEL-04</span></div>
+        <svg class="t-spark" viewBox="0 0 200 50" preserveAspectRatio="none" aria-hidden="true"><path id="tVelPath"/><path id="tVelArea" class="area"/></svg>
+        <span class="t-val"><b id="tVel">7.66</b><small id="tVelU">km/s</small><i class="t-trend" id="tTrend">▲</i></span>
+        <span class="t-hint">Click · switch units</span>
+      </button>
+
+      <!-- DISTANCE -->
+      <button class="t-tile glass t-click" id="tDistTile" aria-label="Distance travelled, click to switch units">
+        <div class="t-top"><span class="t-lbl">Distance travelled</span><span class="t-code">NAV-12</span></div>
+        <div class="t-route" aria-hidden="true">
+          <i class="t-route-fill" style="--p:.62"></i>
+          <span style="--x:0%">Earth</span><span style="--x:38%">Relay</span><span style="--x:62%" class="on">Fleet</span><span style="--x:100%">Kaelen-IV</span>
+        </div>
+        <span class="t-val"><b id="tDist">4,118,204,550</b><small id="tDistU">km</small></span>
+        <span class="t-hint">62% of route · click · km / AU</span>
+      </button>
+
+      <!-- ORBIT -->
+      <div class="t-tile t-tile--orbit glass">
+        <div class="t-top"><span class="t-lbl">Fleet positions</span><span class="t-code">ORB-03</span></div>
+        <div class="t-orbit" aria-hidden="true">
+          <i class="o1"><b data-craft="0"></b></i><i class="o2"><b data-craft="1"></b></i><i class="o3"><b data-craft="2"></b></i>
+          <span class="sun"></span>
+        </div>
+        <div class="t-crafts" role="tablist" aria-label="Select a craft">
+          <button role="tab" aria-selected="true" data-craft="0" style="--c:var(--sky)">Helion-3</button>
+          <button role="tab" aria-selected="false" data-craft="1" style="--c:var(--bone)">Relay-2</button>
+          <button role="tab" aria-selected="false" data-craft="2" style="--c:var(--red)">Lander</button>
+        </div>
+        <dl class="t-detail" id="tDetail"></dl>
+      </div>
+
+      <!-- CREW -->
+      <div class="t-tile glass">
+        <div class="t-top"><span class="t-lbl">Crew aboard</span><span class="t-status">All nominal</span></div>
+        <div class="t-crew" id="tCrew"></div>
+        <p class="t-crew-info" id="tCrewInfo">Hover a crew member for role and shift.</p>
+      </div>
+
+      <!-- MISSION DAY -->
+      <div class="t-tile glass">
+        <div class="t-top"><span class="t-lbl">Mission day</span><span class="t-code">SOL</span></div>
+        <span class="t-val"><b id="tDay">1,842</b><small>sols</small></span>
+        <div class="t-sols" id="tSols"></div>
+        <p class="t-next" id="tNext">Next · <b>Relay sync</b> in 0.4 sol</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ SIGNAL (PARALLAX) ═══════════════════════════ -->
   <section id="pbreak">
     <div id="breakBg"></div>
     <div class="break-overlay"></div>
     <div id="particles"></div>
 
-    <div class="break-content">
+    <div class="break-slab glass" data-tilt>
       <span class="big-stat" id="bigStat">14,000+</span>
-      <span class="stat-sub" id="pbSubLbl">UNCHARTED WORLDS LOGGED AND COUNTING</span>
+      <span class="stat-sub" id="pbSubLbl">Uncharted worlds logged and counting</span>
       <div class="pb-sep" id="pbSep"></div>
-      <blockquote class="pb-blockquote">
-        <div class="pb-qmark">"</div>
+      <blockquote>
         <p class="pq-text" id="pqText">Every signal we dismiss as noise may be someone else's language.</p>
-        <footer class="pq-attr" id="pqAttr">— Dr. Yael Correth &nbsp;·&nbsp; ARIA Chief Astronomer &nbsp;·&nbsp; 2031</footer>
+        <footer class="pq-attr" id="pqAttr">Dr. Yael Correth · ARIA Chief Astronomer · 2031</footer>
       </blockquote>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════ TIMELINE ═══════════════════════════ -->
-  <section id="timeline">
-    <div id="tlPin">
-      <div id="tlSticky">
-        <canvas id="tlCanvas"></canvas>
-        <canvas id="smokeCanvas" class="tl-smoke"></canvas>
-        <div class="tl-scrim"></div>
-
-        <div id="tlHeader">
-          <div class="tl-rule"></div>
-          <h2 class="tl-sec-title">EXPLORATION MILESTONES</h2>
-        </div>
-
-        <div id="tlMsInfo">
-          <div class="tl-ms-num" id="tlMsNum">01</div>
-          <div class="tl-ms-year" id="tlMsYear">1957</div>
-          <h3 class="tl-ms-title" id="tlMsTitle">Sputnik 1</h3>
-          <p class="tl-ms-body" id="tlMsBody">The Soviet Union launches the first artificial satellite, marking the dawn of the space age and humanity's first steps beyond the atmosphere.</p>
-        </div>
-
-        <div id="tlLane">
-          <div id="tlTrack"><div id="tlTrackFill"></div></div>
-          <div id="tlLaneItems">
-            <div class="tl-lane-item active">
-              <div class="tl-lane-dot"></div>
-              <span class="tl-lane-lbl">1957</span>
-            </div>
-            <div class="tl-lane-item">
-              <div class="tl-lane-dot"></div>
-              <span class="tl-lane-lbl">1969</span>
-            </div>
-            <div class="tl-lane-item">
-              <div class="tl-lane-dot"></div>
-              <span class="tl-lane-lbl">1990</span>
-            </div>
-            <div class="tl-lane-item">
-              <div class="tl-lane-dot"></div>
-              <span class="tl-lane-lbl">2004</span>
-            </div>
-            <div class="tl-lane-item">
-              <div class="tl-lane-dot"></div>
-              <span class="tl-lane-lbl">2021</span>
-            </div>
-            <div class="tl-lane-item">
-              <div class="tl-lane-dot"></div>
-              <span class="tl-lane-lbl">2030+</span>
-            </div>
-          </div>
-        </div>
-
-        <div id="tlProgress"><div id="tlProgressFill"></div></div>
-        <div id="tlScrollHint">SCROLL TO EXPLORE</div>
-      </div>
     </div>
   </section>
 
   <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
   <footer id="footer">
-    <div class="footer-silhouette"></div>
-    <div class="footer-glow"></div>
+    <div class="f-top">
+      <h2 class="f-title split">Let's go <em>beyond</em> together.</h2>
 
-    <div class="footer-inner">
-      <div class="f-logo ain">BEYOND</div>
-      <div class="f-tagline ain">A JOURNEY THROUGH THE COSMOS</div>
-      <div class="f-rule"></div>
-      <nav class="f-nav ain">
-        <a href="#">Mission</a>
-        <a href="#">Discoveries</a>
-        <a href="#">Timeline</a>
-        <a href="#">Contact</a>
-      </nav>
-      <p class="f-closing ain">The journey never ends. The stars are waiting.</p>
+      <div class="f-action">
+        <form class="f-form" id="fForm">
+          <label for="fEmail" class="f-label">Get one dispatch per orbit</label>
+          <div class="f-field">
+            <input id="fEmail" type="email" required placeholder="your@email.space" autocomplete="email">
+            <button type="submit" aria-label="Subscribe">→</button>
+          </div>
+          <p class="f-note" id="fNote" aria-live="polite">No noise. Unsubscribe any time.</p>
+        </form>
+
+        <a href="mailto:hello@beyond.space" class="btn-round btn-round--lg" data-magnetic data-cursor="Write">
+          <span>Contact<br>mission</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="f-grid">
+      <div class="f-col">
+        <h4>Sitemap</h4>
+        <a href="#hero" class="ulink">Origin</a>
+        <a href="#worlds" class="ulink">Worlds</a>
+        <a href="#pbreak" class="ulink">Signal</a>
+      </div>
+      <div class="f-col">
+        <h4>Channels</h4>
+        <a href="#footer" class="ulink">Instagram</a>
+        <a href="#footer" class="ulink">YouTube</a>
+        <a href="#footer" class="ulink">X / Twitter</a>
+      </div>
+      <div class="f-col">
+        <h4>Base</h4>
+        <p>Ground Station 7<br>Atacama Plateau, Chile</p>
+      </div>
+      <div class="f-col">
+        <h4>Local time</h4>
+        <p><span id="fClock">00:00</span> <span class="t-dim">GMT−3</span></p>
+        <button class="f-top-btn" id="toTop" data-magnetic>Back to top ↑</button>
+      </div>
+    </div>
+
+    <div class="f-grass" aria-hidden="true"></div>
+
+    <div class="f-word" aria-hidden="true">
+      <span>B</span><span>E</span><span>Y</span><span>O</span><span>N</span><span>D</span>
+    </div>
+
+    <div class="f-bottom">
+      <span>© 2035 Beyond Survey Initiative</span>
+      <span>Designed for the curious</span>
+      <span>Signal <b class="t-sky">98.2%</b></span>
     </div>
   </footer>
 
-  <!-- ═══════════════════════════ SCRIPTS ═══════════════════════════ -->
-  <script>
-    /* Fit hero height so background image fills full width with zero zoom/crop */
-    (function () {
-      const hero = document.getElementById('hero');
-      const img  = document.querySelector('.layer-bg');
-
-      function fitHero() {
-        if (!img.naturalWidth) return;
-        const naturalH = window.innerWidth * (img.naturalHeight / img.naturalWidth);
-        hero.style.height = Math.max(window.innerHeight, naturalH) + 'px';
-        if (window.ScrollTrigger) ScrollTrigger.refresh();
-      }
-
-      img.complete && img.naturalWidth ? fitHero() : img.addEventListener('load', fitHero);
-      window.addEventListener('resize', fitHero);
-    })();
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    /* ─── Smooth scroll (Lenis + GSAP) ─── */
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add(time => lenis.raf(time * 1000));
-    gsap.ticker.lagSmoothing(0);
-
-    /* ─── Detect mobile ─── */
-    const isMobile = window.innerWidth < 769;
-
-    /* ═══════════ HERO PARALLAX ═══════════ */
-    if (!isMobile) {
-      const heroST = {
-        trigger: '#hero',
-        start: 'top top',
-        end: 'bottom top',
-        scrub: 0.9
-      };
-
-      /* Background barely moves → feels far away */
-      gsap.to('#bgWrap', {
-        y: '8%',
-        ease: 'none',
-        scrollTrigger: heroST
-      });
-
-      /* Planet drifts up, fades and scales slightly as hero exits */
-      gsap.to('#planetWrap', {
-        y: '14%',
-        opacity: 0.88,
-        scale: 1.04,
-        ease: 'none',
-        scrollTrigger: heroST
-      });
-
-      /* Haze follows background closely */
-      gsap.to('#hazeWrap', {
-        y: '18%',
-        ease: 'none',
-        scrollTrigger: heroST
-      });
-
-
-
-      /* Hero text layers move up slightly (title behind planet drifts with it) */
-      gsap.to('.hero-title-wrap, .hero-content, .scroll-cue', {
-        y: '-6%',
-        ease: 'none',
-        scrollTrigger: heroST
-      });
-
-      /* ── Mission card overlay animations ── */
-
-      /* 1. Hero dims progressively as user scrolls through it
-            (works for any hero height — tied to hero not missionPin) */
-      gsap.to('#heroScrim', {
-        opacity: 0.88,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '#hero',
-          start: 'top top',      /* start of scroll                        */
-          end:   'bottom top',   /* hero has exited viewport                */
-          scrub: 0.9
-        }
-      });
-
-      /* 2. Kill the rounded corners once the card pins fullscreen
-            '+=100' = 100 px of scroll after start point                  */
-      gsap.to('#mission', {
-        borderTopLeftRadius: '0px',
-        borderTopRightRadius: '0px',
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '#missionPin',
-          start: 'top 10%',     /* card 10 % from viewport top             */
-          end:   '+=100',
-          scrub: 0.4
-        }
-      });
-    }
-
-    /* ═══════════ STAR FIELD ═══════════ */
-    (function () {
-      const canvas = document.getElementById('starsCanvas');
-      const ctx    = canvas.getContext('2d');
-
-      function resize() {
-        canvas.width  = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-      }
-      resize();
-      window.addEventListener('resize', resize);
-
-      const STAR_COUNT = 280;
-      const stars = Array.from({ length: STAR_COUNT }, () => ({
-        x:     Math.random() * 100,
-        y:     Math.random() * 100,
-        r:     Math.random() * 1.5 + 0.2,
-        phase: Math.random() * Math.PI * 2,
-        speed: Math.random() * 0.6 + 0.2
-      }));
-
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const t = Date.now() * 0.001;
-        stars.forEach(s => {
-          const a = (Math.sin(t * s.speed + s.phase) + 1) / 2 * 0.72 + 0.08;
-          ctx.beginPath();
-          ctx.arc(s.x / 100 * canvas.width, s.y / 100 * canvas.height, s.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(245,240,232,${a})`;
-          ctx.fill();
-        });
-        requestAnimationFrame(draw);
-      }
-      draw();
-    })();
-
-    /* ═══════════ PARTICLES ═══════════ */
-    (function () {
-      const container = document.getElementById('particles');
-      for (let i = 0; i < 40; i++) {
-        const el   = document.createElement('div');
-        el.className = 'pt';
-        const size = Math.random() * 2.2 + 0.4;
-        const dur  = Math.random() * 9 + 6;
-        const dx   = ((Math.random() - 0.5) * 90).toFixed(1);
-        el.style.cssText = [
-          `left:${(Math.random() * 100).toFixed(1)}%`,
-          `bottom:${(Math.random() * 50).toFixed(1)}%`,
-          `width:${size.toFixed(1)}px`,
-          `height:${size.toFixed(1)}px`,
-          `--dx:${dx}px`,
-          `animation-duration:${dur.toFixed(1)}s`,
-          `animation-delay:${(-Math.random() * dur).toFixed(1)}s`
-        ].join(';');
-        container.appendChild(el);
-      }
-    })();
-
-    /* ═══════════ PARALLAX BREAK ═══════════ */
-    gsap.to('#breakBg', {
-      y: '22%',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '#pbreak',
-        start: 'top bottom',
-        end:   'bottom top',
-        scrub: true
-      }
-    });
-
-    /* ═══════════ QUOTE SECTION ANIMATIONS ═══════════ */
-    (function () {
-      var statEl  = document.getElementById('bigStat');
-      var subEl   = document.getElementById('pbSubLbl');
-      var sepEl   = document.getElementById('pbSep');
-      var textEl  = document.getElementById('pqText');
-      var attrEl  = document.getElementById('pqAttr');
-      if (!statEl) return;
-
-      var words = textEl.textContent.trim().split(/\s+/);
-      textEl.innerHTML = words.map(function(w){ return '<span class="pq-w">' + w + '</span>'; }).join(' ');
-
-      gsap.set([statEl, subEl], { opacity: 0, y: 22 });
-      gsap.set(sepEl,  { scaleX: 0 });
-      gsap.set('.pq-w', { opacity: 0, y: 15 });
-      gsap.set(attrEl, { opacity: 0, y: 10 });
-
-      ScrollTrigger.create({
-        trigger: '#pbreak',
-        start: 'top 65%',
-        once: true,
-        onEnter: function () {
-          var tl = gsap.timeline();
-
-          tl.to({ v: 0 }, {
-            v: 14000, duration: 2, ease: 'power2.out',
-            onUpdate: function () {
-              statEl.textContent = Math.round(this.targets()[0].v).toLocaleString() + '+';
-            }
-          }, 0);
-          tl.to(statEl, { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, 0);
-          tl.to(subEl,  { opacity: 1, y: 0, duration: 0.5,  ease: 'power2.out' }, 0.3);
-          tl.to(sepEl,  { scaleX: 1,         duration: 0.9,  ease: 'expo.out'   }, 0.75);
-          tl.to('.pq-w', { opacity: 1, y: 0, duration: 0.45, stagger: 0.055, ease: 'power2.out' }, 1.25);
-          tl.to(attrEl, { opacity: 1, y: 0, duration: 0.6,  ease: 'power2.out' },
-                          1.25 + words.length * 0.055 + 0.25);
-        }
-      });
-    })();
-
-    /* ═══════════ VIDEO FRAME SCRUBBER ═══════════ */
-    (function () {
-      var TOTAL_FRAMES = 96;
-      var MILESTONES = [
-        { year: '1957', title: 'Sputnik 1',
-          body: 'The Soviet Union launches the first artificial satellite, marking the dawn of the space age and humanity\'s first steps beyond the atmosphere.' },
-        { year: '1969', title: 'Apollo 11 Moon Landing',
-          body: 'Neil Armstrong and Buzz Aldrin become the first humans to walk on the Moon, fulfilling a decade-long national ambition and redefining what it means to be explorers.' },
-        { year: '1990', title: 'Hubble Space Telescope',
-          body: 'Deployed into low Earth orbit, Hubble becomes humanity\'s eye in the sky — delivering images of deep space that fundamentally transformed our understanding of the cosmos.' },
-        { year: '2004', title: 'Mars Rovers Spirit & Opportunity',
-          body: 'Twin rovers land on Mars and uncover compelling evidence of ancient water activity, reshaping our understanding of the Red Planet\'s wetter, potentially habitable past.' },
-        { year: '2021', title: 'James Webb Space Telescope',
-          body: 'The most powerful space telescope ever built, Webb peers to the universe\'s first light and examines exoplanet atmospheres in unprecedented detail — seeing what no eye has ever seen.' },
-        { year: '2030+', title: 'Crewed Mars Mission',
-          body: 'Humanity\'s next giant leap — a crewed mission to Mars that will make us an interplanetary species. A multi-year journey, a permanent expansion of what we are willing to call home.' }
-      ];
-
-      var canvas   = document.getElementById('tlCanvas');
-      if (!canvas) return;
-      var ctx      = canvas.getContext('2d');
-      var frames   = new Array(TOTAL_FRAMES);
-      var currentMs    = -1;
-      var currentFrame = -1;
-
-      var msNum      = document.getElementById('tlMsNum');
-      var msYear     = document.getElementById('tlMsYear');
-      var msTitle    = document.getElementById('tlMsTitle');
-      var msBody     = document.getElementById('tlMsBody');
-      var laneItems  = document.querySelectorAll('.tl-lane-item');
-      var trackFill  = document.getElementById('tlTrackFill');
-      var progFill   = document.getElementById('tlProgressFill');
-      var hint       = document.getElementById('tlScrollHint');
-
-      function resizeCanvas() {
-        canvas.width  = window.innerWidth;
-        canvas.height = window.innerHeight;
-        if (currentFrame >= 0 && frames[currentFrame] && frames[currentFrame].complete) {
-          ctx.drawImage(frames[currentFrame], 0, 0, canvas.width, canvas.height);
-        }
-      }
-      window.addEventListener('resize', resizeCanvas);
-      resizeCanvas();
-
-      function drawFrame(idx) {
-        var img = frames[idx];
-        if (!img || !img.complete || !img.naturalWidth) return;
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        currentFrame = idx;
-      }
-
-      function setMilestone(idx) {
-        if (idx === currentMs) return;
-        currentMs = idx;
-        var ms = MILESTONES[idx];
-        gsap.to('#tlMsInfo', {
-          opacity: 0, y: 12, duration: 0.18,
-          onComplete: function () {
-            msNum.textContent   = ('0' + (idx + 1)).slice(-2);
-            msYear.textContent  = ms.year;
-            msTitle.textContent = ms.title;
-            msBody.textContent  = ms.body;
-            gsap.to('#tlMsInfo', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' });
-          }
-        });
-        laneItems.forEach(function (el, i) { el.classList.toggle('active', i === idx); });
-      }
-
-      /* Preload frames sequentially for fast first paint */
-      (function preload(i) {
-        if (i >= TOTAL_FRAMES) return;
-        var img = new Image();
-        img.onload = function () {
-          if (i === 0) { drawFrame(0); }
-          preload(i + 1);
-        };
-        img.onerror = function () { preload(i + 1); };
-        img.src = 'frames/frame_' + String(i + 1).padStart(4, '0') + '.jpg';
-        frames[i] = img;
-      })(0);
-
-      gsap.set('#tlMsInfo', { opacity: 0, y: 16 });
-
-      ScrollTrigger.create({
-        trigger: '#tlPin',
-        start: 'top top',
-        end:   'bottom bottom',
-        scrub: true,
-        onEnter: function () { setMilestone(0); },
-        onUpdate: function (self) {
-          var p  = self.progress;
-          var fi = Math.min(Math.floor(p * TOTAL_FRAMES), TOTAL_FRAMES - 1);
-          var mi = Math.min(Math.floor(p * 6), 5);
-          drawFrame(fi);
-          setMilestone(mi);
-          trackFill.style.height = (p * 100).toFixed(1) + '%';
-          progFill.style.width  = (p * 100).toFixed(1) + '%';
-          if (hint && p > 0.03) hint.style.opacity = '0';
-        }
-      });
-    })();
-
-    /* ═══════════ INTERSECTION OBSERVER ═══════════ */
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('vis');
-          /* sec-rule needs vis not .ain tracking */
-        }
-      });
-    }, { threshold: 0.14, rootMargin: '0px 0px -40px 0px' });
-
-    /* Observe general animate-in elements */
-    document.querySelectorAll('.ain').forEach((el, i) => {
-      io.observe(el);
-    });
-
-    /* Observe section rules */
-    document.querySelectorAll('.sec-rule, .f-rule').forEach(el => io.observe(el));
-
-    /* ═══════════ SMOKE DIVIDER ═══════════ */
-    (function () {
-      var cv = document.getElementById('smokeCanvas');
-      if (!cv) return;
-      var cx = cv.getContext('2d');
-      var W = 0, H = 0;
-      var PARTS = [];
-      var COUNT = 26;
-
-      function rnd(lo, hi) { return lo + Math.random() * (hi - lo); }
-
-      /* spawn a particle, optionally pre-aged by skipF frames */
-      function spawn(skipF) {
-        skipF = skipF | 0;
-        var vx   = rnd(-0.28, 0.28);
-        var vy   = -rnd(0.45, 0.90);
-        var dr   = rnd(0.18, 0.36);
-        var life = (260 + Math.random() * 180) | 0;
-        var peak = rnd(0.18, 0.35);
-        var maxA = rnd(0.14, 0.26);
-        /* blue-grey to warm-grey tones */
-        var col  = (108 + Math.random() * 58) | 0;
-        var blue = Math.min(col + (Math.random() > 0.5 ? 25 : 5), 218) | 0;
-        return {
-          x: rnd(0.04, 0.96) * W + vx * skipF,
-          y: H + vy * skipF,
-          r: rnd(65, 160) + dr * skipF,
-          vx: vx, vy: vy, dr: dr,
-          age: skipF, life: life,
-          peak: peak, maxA: maxA,
-          col: col, blue: blue
-        };
-      }
-
-      function resize() {
-        W = cv.width  = cv.offsetWidth  || window.innerWidth;
-        H = cv.height = cv.offsetHeight || Math.round(window.innerHeight * 0.55);
-      }
-
-      function tick() {
-        requestAnimationFrame(tick);
-        cx.clearRect(0, 0, W, H);
-
-        for (var i = 0; i < PARTS.length; i++) {
-          var p = PARTS[i];
-
-          /* opacity envelope */
-          var t = p.age / p.life;
-          var e = t < p.peak
-            ? t / p.peak
-            : 1 - (t - p.peak) / (1 - p.peak);
-          var a = Math.max(0, e * p.maxA);
-
-          /* radial gradient puff */
-          if (p.r > 0 && a > 0) {
-            var g = cx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
-            g.addColorStop(0,    'rgba(' + p.col + ',' + p.col + ',' + p.blue + ',' + a + ')');
-            g.addColorStop(0.5,  'rgba(' + p.col + ',' + p.col + ',' + p.blue + ',' + (a * 0.42) + ')');
-            g.addColorStop(1,    'rgba(0,0,0,0)');
-            cx.beginPath();
-            cx.arc(p.x, p.y, p.r, 0, 6.2832);
-            cx.fillStyle = g;
-            cx.fill();
-          }
-
-          /* advance */
-          p.x   += p.vx;
-          p.y   += p.vy;
-          p.r   += p.dr;
-          p.age++;
-          if (p.age >= p.life) { PARTS[i] = spawn(0); }
-        }
-      }
-
-      resize();
-      /* seed particles spread across their lifetimes so it's full on load */
-      for (var i = 0; i < COUNT; i++) {
-        PARTS.push(spawn((Math.random() * 320) | 0));
-      }
-      window.addEventListener('resize', resize);
-      tick();
-    })();
-
-    /* Card stagger delays */
-    document.querySelectorAll('.card').forEach((card, i) => {
-      card.style.transitionDelay = `${i * 0.08}s`;
-    });
-  </script>
-
-  <script src="suit.js" defer></script>
+  <script src="main.js"></script>
 </body>
 </html>
